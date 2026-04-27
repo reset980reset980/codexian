@@ -117,7 +117,7 @@ export class CodexianView extends ItemView {
     this.buildThinkingSelector(toolbar);
     this.buildPermissionToggle(toolbar);
 
-    const sendBtn = toolbar.createDiv({ cls: 'oc-send-btn', attr: { 'aria-label': 'Send message' } });
+    const sendBtn = toolbar.createDiv({ cls: 'oc-header-btn oc-send-btn', attr: { 'aria-label': 'Send message' } });
     setIcon(sendBtn, 'send');
     sendBtn.addEventListener('click', () => void this.submit());
   }
