@@ -17,6 +17,8 @@ Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your va
 
 - **Codex sidebar**: Ask Codex to work with your vault from an Obsidian-native chat panel.
 - **Current-note context**: Active note content and selected text are automatically attached to prompts.
+- **Pinned note context**: Pin important notes so they stay attached even when you switch files.
+- **Fast composer UX**: Press Enter to send, or Shift+Enter for a new line.
 - **Vault working directory**: Codex runs with the vault as its working root.
 - **Permission modes**: Review, Auto, and Yolo modes map to Codex sandbox behavior.
 - **No API key for core use**: Codexian uses your authenticated Codex CLI session, like ObsidianCode uses Claude Code CLI.
@@ -100,6 +102,7 @@ git push origin 0.1.0
 Open Obsidian Settings → Community plugins → Codexian.
 
 - Set `Codex CLI path` only if auto-detection fails.
+- Codexian auto-detects common macOS, Windows, Homebrew, npm, and NVM Codex paths and can store the detected path for you.
 - Add `PATH` under environment variables only if Obsidian cannot find `codex`, `npm`, or `omx`.
 - Choose your Codex model and reasoning effort.
 - Run diagnostics before using the one-click OMX installer.

@@ -1,4 +1,4 @@
-import { ItemView, MarkdownRenderer, Notice, setIcon, type WorkspaceLeaf } from 'obsidian';
+import { ItemView, MarkdownRenderer, Notice, setIcon, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 import type CodexianPlugin from '../main';
 import type { ConversationMessage } from '../core/types';
@@ -10,6 +10,7 @@ export class CodexianView extends ItemView {
   private logEl: HTMLElement;
   private inputEl: HTMLTextAreaElement;
   private statusEl: HTMLElement;
+  private contextEl: HTMLElement;
   private messages: ConversationMessage[] = [];
 
   constructor(leaf: WorkspaceLeaf, plugin: CodexianPlugin) {
@@ -48,6 +49,11 @@ export class CodexianView extends ItemView {
     toolbar.createSpan({ cls: 'codexian-pill', text: `Mode: ${this.plugin.settings.permissionMode}` });
     this.statusEl = toolbar.createSpan({ cls: 'codexian-pill', text: 'Ready' });
 
+    this.contextEl = header.createDiv({ cls: 'codexian-context-row' });
+    this.renderContextRow();
+    this.registerEvent(this.app.workspace.on('active-leaf-change', () => this.renderContextRow()));
+    this.registerEvent(this.app.workspace.on('file-open', () => this.renderContextRow()));
+
     this.logEl = root.createDiv({ cls: 'codexian-log' });
     this.renderEmptyState();
 
@@ -55,6 +61,12 @@ export class CodexianView extends ItemView {
     this.inputEl = composer.createEl('textarea', {
       cls: 'codexian-input',
       attr: { placeholder: 'Ask Codex to work with this vault...' },
+    });
+    this.inputEl.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        void this.submit();
+      }
     });
 
     const actions = composer.createDiv({ cls: 'codexian-composer-actions' });
@@ -76,6 +88,52 @@ export class CodexianView extends ItemView {
     empty.setText('Attach your current note implicitly, ask Codex for a change, or generate an image from the note.');
   }
 
+  private renderContextRow(): void {
+    if (!this.contextEl) return;
+    this.contextEl.empty();
+
+    const activeFile = this.plugin.getActiveMarkdownFile();
+    const activeText = activeFile
+      ? `${this.plugin.settings.autoIncludeActiveNote ? 'Auto' : 'Available'}: ${activeFile.path}`
+      : 'No active note';
+    this.contextEl.createSpan({ cls: 'codexian-context-chip', text: activeText });
+
+    if (activeFile) {
+      const isPinned = this.plugin.isNotePinned(activeFile.path);
+      const button = this.contextEl.createEl('button', {
+        cls: 'codexian-context-button',
+        text: isPinned ? 'Unpin note' : 'Pin note',
+      });
+      button.addEventListener('click', async () => {
+        if (isPinned) await this.plugin.unpinNote(activeFile.path);
+        else await this.plugin.pinNote(activeFile.path);
+        this.renderContextRow();
+      });
+    }
+
+    const autoButton = this.contextEl.createEl('button', {
+      cls: 'codexian-context-button',
+      text: this.plugin.settings.autoIncludeActiveNote ? 'Auto note: on' : 'Auto note: off',
+    });
+    autoButton.addEventListener('click', async () => {
+      this.plugin.settings.autoIncludeActiveNote = !this.plugin.settings.autoIncludeActiveNote;
+      await this.plugin.saveSettings();
+      this.renderContextRow();
+    });
+
+    for (const path of this.plugin.settings.pinnedNotePaths) {
+      const chip = this.contextEl.createSpan({ cls: 'codexian-context-chip codexian-context-chip-pinned' });
+      chip.setText(`Pinned: ${path}`);
+      chip.addEventListener('click', () => void this.openPinnedNote(path));
+    }
+  }
+
+  private async openPinnedNote(path: string): Promise<void> {
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (!file || !('extension' in file)) return;
+    await this.app.workspace.getLeaf(false).openFile(file as TFile);
+  }
+
   private async submit(): Promise<void> {
     const prompt = this.inputEl.value.trim();
     if (!prompt) return;
@@ -95,6 +153,7 @@ export class CodexianView extends ItemView {
         activeNotePath: context?.path,
         activeNoteContent: context?.content,
         selectedText: context?.selection,
+        pinnedNotes: context?.pinnedNotes,
       })) {
         if (event.type === 'text') {
           assistantBuffer += event.content;

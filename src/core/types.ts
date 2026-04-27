@@ -7,6 +7,8 @@ export interface CodexianSettings {
   codexModel: string;
   reasoningEffort: ReasoningEffort;
   permissionMode: PermissionMode;
+  autoIncludeActiveNote: boolean;
+  pinnedNotePaths: string[];
   environmentVariables: string;
   mediaFolder: string;
   omx: {
@@ -33,6 +35,7 @@ export interface AgentQuery {
   activeNotePath?: string;
   activeNoteContent?: string;
   selectedText?: string;
+  pinnedNotes?: Array<{ path: string; content: string }>;
 }
 
 export type AgentEvent =
@@ -53,6 +56,8 @@ export const DEFAULT_SETTINGS: CodexianSettings = {
   codexModel: 'gpt-5.4',
   reasoningEffort: 'high',
   permissionMode: 'review',
+  autoIncludeActiveNote: true,
+  pinnedNotePaths: [],
   environmentVariables: '',
   mediaFolder: 'attachments/codexian',
   omx: {

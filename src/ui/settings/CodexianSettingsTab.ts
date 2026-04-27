@@ -2,6 +2,8 @@ import { Notice, PluginSettingTab, Setting } from 'obsidian';
 
 import type CodexianPlugin from '../../main';
 import type { PermissionMode, ReasoningEffort } from '../../core/types';
+import { findCodexCli } from '../../core/codex/CodexCliResolver';
+import { buildProcessEnv } from '../../core/settings/env';
 import { getInstallPreview, installOrUpdateOmx } from '../../core/installer/OmxInstaller';
 import { probeEnvironment } from '../../core/installer/EnvironmentProbe';
 
@@ -24,16 +26,30 @@ export class CodexianSettingsTab extends PluginSettingTab {
     statusCard.createEl('p', {
       text: 'Configure Codex CLI, model, reasoning, and the environment Obsidian will use.',
     });
+    const detectedCodex = findCodexCli('', buildProcessEnv(this.plugin.settings.environmentVariables).PATH);
+    statusCard.createEl('p', {
+      cls: 'codexian-settings-hint',
+      text: detectedCodex ? `Detected Codex CLI: ${detectedCodex}` : 'Codex CLI was not auto-detected yet.',
+    });
 
     new Setting(statusCard)
       .setName('Codex CLI path')
-      .setDesc('Leave empty for auto-detection from PATH.')
+      .setDesc('Leave empty for auto-detection, or click “Use detected” to lock the detected path.')
       .addText((text) => text
         .setPlaceholder(process.platform === 'win32' ? 'C:\\Users\\you\\AppData\\Roaming\\npm\\codex.cmd' : '/opt/homebrew/bin/codex')
         .setValue(this.plugin.settings.codexCliPath)
         .onChange(async (value) => {
           this.plugin.settings.codexCliPath = value.trim();
           await this.plugin.saveSettings();
+        }))
+      .addButton((button) => button
+        .setButtonText('Use detected')
+        .setDisabled(!detectedCodex)
+        .onClick(async () => {
+          if (!detectedCodex) return;
+          this.plugin.settings.codexCliPath = detectedCodex;
+          await this.plugin.saveSettings();
+          this.display();
         }));
 
     new Setting(statusCard)
@@ -68,6 +84,16 @@ export class CodexianSettingsTab extends PluginSettingTab {
         .setValue(this.plugin.settings.permissionMode)
         .onChange(async (value) => {
           this.plugin.settings.permissionMode = value as PermissionMode;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(statusCard)
+      .setName('Auto-include active note')
+      .setDesc('Automatically attach the currently open markdown note to every Codex prompt.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.autoIncludeActiveNote)
+        .onChange(async (value) => {
+          this.plugin.settings.autoIncludeActiveNote = value;
           await this.plugin.saveSettings();
         }));
 

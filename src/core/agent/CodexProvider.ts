@@ -1,7 +1,8 @@
 import { spawn, type ChildProcess } from 'child_process';
+import * as path from 'path';
 
 import type { AgentEvent, AgentProvider, AgentQuery, CodexianSettings } from '../types';
-import { buildProcessEnv } from '../settings/env';
+import { buildProcessEnv, mergePath } from '../settings/env';
 import { findCodexCli } from '../codex/CodexCliResolver';
 
 export class CodexProvider implements AgentProvider {
@@ -26,6 +27,7 @@ export class CodexProvider implements AgentProvider {
       yield { type: 'done' };
       return;
     }
+    env.PATH = mergePath(env.PATH, [path.dirname(codexPath)]);
 
     const prompt = this.buildPrompt(input);
     const args = [
@@ -83,6 +85,13 @@ export class CodexProvider implements AgentProvider {
       parts.push(`\n\nSelected text:\n${input.selectedText}`);
     }
 
+    if (input.pinnedNotes && input.pinnedNotes.length > 0) {
+      const pinned = input.pinnedNotes
+        .map((note) => `Pinned Obsidian note: ${note.path}\n\n${note.content}`)
+        .join('\n\n---\n\n');
+      parts.push(`\n\nPinned context notes:\n${pinned}`);
+    }
+
     parts.push('\n\nYou are running inside an Obsidian vault. Keep edits vault-scoped unless the user explicitly requests otherwise.');
     return parts.join('');
   }
@@ -117,7 +126,10 @@ export class CodexProvider implements AgentProvider {
     });
     child.on('close', (code) => {
       if (code && code !== 0) {
-        queue.push({ type: 'error', content: `Codex exited with code ${code}.` });
+        const pathHint = code === 127
+          ? `\n\nCommand-not-found hint: Obsidian may not have the same PATH as your terminal. Current PATH passed to Codexian:\n${env.PATH || '(empty)'}`
+          : '';
+        queue.push({ type: 'error', content: `Codex exited with code ${code}.${pathHint}` });
       }
       done = true;
     });

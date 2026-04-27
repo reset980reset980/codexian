@@ -10,6 +10,16 @@ function isFile(filePath: string): boolean {
   }
 }
 
+function listDirs(parent: string): string[] {
+  try {
+    return fs.readdirSync(parent)
+      .map((entry) => path.join(parent, entry))
+      .filter((entry) => fs.statSync(entry).isDirectory());
+  } catch {
+    return [];
+  }
+}
+
 function pathEntries(pathValue?: string): string[] {
   return (pathValue || process.env.PATH || '')
     .split(path.delimiter)
@@ -39,6 +49,8 @@ export function findCodexCli(customPath?: string, pathValue?: string): string | 
   }
 
   const home = os.homedir();
+  const nvmBins = listDirs(path.join(home, '.nvm', 'versions', 'node'))
+    .map((dir) => path.join(dir, 'bin', process.platform === 'win32' ? 'codex.cmd' : 'codex'));
   const candidates = process.platform === 'win32'
     ? [
         path.join(process.env.APPDATA || path.join(home, 'AppData', 'Roaming'), 'npm', 'codex.cmd'),
@@ -48,6 +60,7 @@ export function findCodexCli(customPath?: string, pathValue?: string): string | 
         '/opt/homebrew/bin/codex',
         '/usr/local/bin/codex',
         path.join(home, '.npm-global', 'bin', 'codex'),
+        ...nvmBins,
       ];
 
   return candidates.find(isFile) || null;
@@ -59,4 +72,3 @@ export function getShellCommand(command: string): { command: string; args: strin
   }
   return { command: '/bin/zsh', args: ['-lc', command] };
 }
-
