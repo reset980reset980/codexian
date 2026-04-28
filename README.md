@@ -13,11 +13,24 @@ OpenAI Codex and oh-my-codex setup inside Obsidian, with no API key required for
 
 Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your vault as a sidebar agent. It is designed for note-aware coding, writing, refactoring, local automation, and visual SVG asset generation from your Obsidian notes.
 
+## Current Release
+
+Latest BRAT release: **0.1.8**
+
+Install with:
+
+```text
+https://github.com/reallygood83/codexian
+```
+
+Core chat works through your authenticated Codex CLI session. Codexian does **not** require an OpenAI API key for normal chat use.
+
 ## Features
 
 - **Codex sidebar**: Ask Codex to work with your vault from an Obsidian-native chat panel.
 - **Current-note context**: Active note content and selected text are automatically attached to prompts.
 - **Pinned note context**: Pin important notes so they stay attached even when you switch files.
+- **Dismissible note context**: Use the `x` button on a note chip when you want to work without that note being sent to Codex.
 - **Stable note chips**: Current-note chips stay visible when the sidebar takes focus, matching ObsidianCode behavior.
 - **Attach current note command**: Use Obsidian's hotkey settings to bind `Codexian: Attach current note to chat`.
 - **Fast composer UX**: Press Enter to send, or Shift+Enter for a new line.
@@ -75,7 +88,7 @@ Then enable **Codexian** in Obsidian settings.
 
 ## Installing With BRAT
 
-Codexian is intended to support BRAT installation from GitHub releases.
+Codexian supports BRAT installation from GitHub releases.
 
 1. Install **Obsidian42 - BRAT** from Obsidian Community Plugins.
 2. Open BRAT settings.
@@ -88,13 +101,41 @@ https://github.com/reallygood83/codexian
 
 5. Enable **Codexian** in Obsidian Community Plugins.
 
-For BRAT to work, each GitHub release must include these assets:
+Each release includes the files BRAT needs:
 
 - `main.js`
 - `manifest.json`
 - `styles.css`
 
-This repository includes a release workflow that builds and uploads those assets when a tag matching the manifest version is pushed, for example:
+If BRAT does not update immediately, use BRAT's plugin update command or restart Obsidian.
+
+## Note Context Workflow
+
+Codexian is designed to make Obsidian notes feel native inside Codex CLI:
+
+- Open a note and Codexian automatically detects it.
+- Click the pin icon to keep a note attached while you switch files.
+- Click `x` to remove a note from Codexian context when you want a note-independent conversation.
+- Run `Codexian: Attach current note to chat` from Obsidian commands or bind it to a hotkey.
+- Ask Codex normally; Codexian sends the selected note context through Codex CLI.
+
+## Planned: Memory Map
+
+The next major feature direction is **Codexian Memory Map**: a one-button way to find relevant notes in your vault.
+
+Planned user flow:
+
+1. Click **Build Memory Map** once to index the vault locally.
+2. Open any note.
+3. Click **Find Context** or use a hotkey.
+4. Codexian recommends related notes with clear reasons.
+5. Add useful notes to the chat context with `+`.
+
+The first version will use a local rule-based index of note titles, tags, links, backlinks, headings, keywords, folders, and modified times. This gives fast results without an API key. Later versions can add optional local embeddings, Ollama embeddings, or OpenAI API embeddings while keeping the default workflow simple.
+
+## Release Workflow
+
+This repository includes a GitHub Actions workflow that builds and uploads BRAT assets when a tag matching the manifest version is pushed, for example:
 
 ```bash
 git tag 0.1.0
@@ -140,8 +181,10 @@ This project is in early MVP development. The current implementation prioritizes
 
 - Codex CLI execution is implemented behind a provider boundary.
 - Codex-powered SVG visual asset generation is implemented without API keys.
+- ObsidianCode-style chat UI and note context chips are implemented.
+- Active-note, pinned-note, hotkey attach, and dismissible note context are implemented.
 - OMX diagnostics and install/update UI are implemented.
-- Deeper tool-call rendering, diff previews, and long-term conversation persistence are planned.
+- Memory Map, deeper tool-call rendering, diff previews, and long-term conversation persistence are planned.
 
 ## Credits
 
