@@ -21,6 +21,7 @@ interface ActiveNoteContext {
 export default class CodexianPlugin extends Plugin {
   settings: CodexianSettings;
   agent: CodexProvider;
+  private lastActiveMarkdownFile: TFile | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -147,7 +148,16 @@ export default class CodexianPlugin extends Plugin {
   }
 
   getActiveMarkdownFile(): TFile | null {
-    return this.app.workspace.getActiveViewOfType(MarkdownView)?.file || null;
+    const markdownViewFile = this.app.workspace.getActiveViewOfType(MarkdownView)?.file;
+    const activeFile = this.app.workspace.getActiveFile();
+    const file = markdownViewFile || activeFile || this.lastActiveMarkdownFile;
+
+    if (file && file.extension === 'md') {
+      this.lastActiveMarkdownFile = file;
+      return file;
+    }
+
+    return this.lastActiveMarkdownFile;
   }
 
   isNotePinned(path: string): boolean {
@@ -155,8 +165,9 @@ export default class CodexianPlugin extends Plugin {
   }
 
   async pinNote(path: string): Promise<void> {
-    if (!this.settings.pinnedNotePaths.includes(path)) {
-      this.settings.pinnedNotePaths.push(path);
+    const normalizedPath = path.replace(/\\/g, '/');
+    if (!this.settings.pinnedNotePaths.includes(normalizedPath)) {
+      this.settings.pinnedNotePaths.push(normalizedPath);
       await this.saveSettings();
     }
   }
@@ -184,7 +195,8 @@ export default class CodexianPlugin extends Plugin {
   }
 
   async unpinNote(path: string): Promise<void> {
-    const next = this.settings.pinnedNotePaths.filter((item) => item !== path);
+    const normalizedPath = path.replace(/\\/g, '/');
+    const next = this.settings.pinnedNotePaths.filter((item) => item !== normalizedPath);
     if (next.length !== this.settings.pinnedNotePaths.length) {
       this.settings.pinnedNotePaths = next;
       await this.saveSettings();

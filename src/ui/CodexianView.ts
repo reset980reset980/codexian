@@ -217,15 +217,25 @@ export class CodexianView extends ItemView {
   private createFileChip(filePath: string, options: { current?: boolean; pinned?: boolean }): void {
     if (!this.fileIndicatorEl) return;
     const chip = this.fileIndicatorEl.createDiv({ cls: 'oc-file-chip' });
-    if (options.current) chip.addClass('oc-file-chip-current');
-    if (options.pinned) chip.addClass('oc-file-chip-pinned');
+    if (options.pinned) {
+      chip.addClass('oc-file-chip-pinned');
+    } else if (options.current) {
+      chip.addClass('oc-file-chip-current');
+    } else {
+      chip.addClass('oc-file-chip-attached');
+    }
 
     const icon = chip.createSpan({ cls: 'oc-file-chip-icon' });
     setIcon(icon, 'file-text');
-    chip.createSpan({ cls: 'oc-file-chip-name', text: options.current ? `Current: ${filePath}` : filePath });
+    const normalizedPath = filePath.replace(/\\/g, '/');
+    const filename = normalizedPath.split('/').pop() || filePath;
+    const name = chip.createSpan({ cls: 'oc-file-chip-name', text: filename });
+    name.setAttribute('title', options.current ? `Current: ${filePath}` : filePath);
 
     const pin = chip.createSpan({ cls: 'oc-file-chip-pin' });
-    setIcon(pin, 'pin');
+    setIcon(pin, options.pinned ? 'pin-off' : 'pin');
+    pin.setAttribute('aria-label', options.pinned ? 'Unpin note' : 'Pin note');
+    pin.setAttribute('title', options.pinned ? 'Pinned - click to unpin' : 'Click to pin this note');
     pin.addEventListener('click', async (event) => {
       event.stopPropagation();
       if (this.plugin.isNotePinned(filePath)) await this.plugin.unpinNote(filePath);
