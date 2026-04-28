@@ -15,7 +15,7 @@ Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your va
 
 ## Current Release
 
-Latest BRAT release: **0.2.5**
+Latest BRAT release: **0.2.6**
 
 Install with:
 
@@ -47,7 +47,9 @@ Core chat works through your authenticated Codex CLI session. Codexian does **no
 - **Permission modes**: Review, Auto, and Yolo modes map to Codex sandbox behavior.
 - **No API key for core use**: Codexian uses your authenticated Codex CLI session, like ObsidianCode uses Claude Code CLI.
 - **Codex visual assets**: Generate SVG infographics, posters, cartoons, concept-art boards, or diagram-like illustrations from note context.
-- **Automatic visual embedding**: Generated SVG files are saved into the configured attachment folder and embedded with `![[...]]`.
+- **Prompt-drafted visual generation**: Codexian analyzes the current note, drafts an image-generation prompt, then applies that prompt to create the SVG.
+- **Automatic top embedding**: Generated SVG files are saved into the configured attachment folder and embedded at the top of the active note with `![[...]]`.
+- **Korean-safe SVG guidance**: Visual generation prompts include Korean font fallbacks and instructions to avoid garbled Korean labels.
 - **oh-my-codex setup**: Settings include diagnostics and an install/update flow for Codex CLI plus OMX.
 - **macOS and Windows aware**: CLI detection, diagnostics, and command previews adapt by platform.
 
@@ -183,7 +185,7 @@ Codexian can generate:
 - Concept art
 - Diagram-like illustrations
 
-The generated SVG is created by Codex CLI, saved to the configured media folder, and appended to the active note as an Obsidian embed.
+Codexian first asks Codex CLI to analyze the note and draft an image-generation prompt. It then asks Codex CLI to create the SVG from that generated prompt. The generated SVG is saved to the configured media folder and inserted at the top of the active note as an Obsidian embed.
 
 This is intentionally not an OpenAI Images API integration. Codexian is designed to work from your Codex CLI subscription/login without requiring separate API billing.
 

@@ -3,7 +3,7 @@ import type { App, TFile } from 'obsidian';
 
 import type { CodexProvider } from '../agent/CodexProvider';
 import type { ImageMode } from '../types';
-import { buildImagePrompt } from './ImagePromptBuilder';
+import { buildImagePrompt, buildPromptDraftRequest } from './ImagePromptBuilder';
 
 function sanitizeName(input: string): string {
   return input
@@ -49,16 +49,18 @@ export async function generateVisualAsset(request: GenerateVisualAssetRequest): 
   const filename = `${sanitizeName(`${request.file.basename}-${request.mode}`)}-${Date.now()}.svg`;
   const vaultRelativePath = path.posix.join(normalizedFolder, filename);
 
-  const visualPrompt = buildImagePrompt({
+  const fallbackPrompt = buildImagePrompt({
     mode: request.mode,
     userPrompt: request.userPrompt,
     noteTitle: request.file.basename,
     noteContent: request.noteContent,
     selection: request.selection,
   });
+  const draftedPrompt = await draftVisualPrompt(request);
+  const visualPrompt = draftedPrompt || fallbackPrompt;
 
   const prompt = [
-    'Create a single SVG visual asset for the active Obsidian note.',
+    'Create a single SVG visual asset from the generated image prompt below.',
     '',
     `Target file path, relative to the vault root: ${vaultRelativePath}`,
     '',
@@ -66,8 +68,13 @@ export async function generateVisualAsset(request: GenerateVisualAssetRequest): 
     '- Use Codex CLI only. Do not call API keys or image APIs.',
     '- Write exactly one valid standalone SVG file to the target path.',
     '- The SVG must be viewBox-based, self-contained, and safe for Obsidian embedding.',
+    '- Include <style> text rules with font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif.',
+    '- Use real UTF-8 Korean text directly in <text> elements when Korean labels are needed.',
+    '- Keep Korean labels short and large enough to read. Do not create mojibake, random glyphs, or placeholder Latin text.',
     '- Prefer visual hierarchy, shapes, layout, and concise labels over long paragraphs.',
-    '- Do not modify the source note. Codexian will append the embed after the file exists.',
+    '- Do not modify the source note. Codexian will embed the SVG at the top after the file exists.',
+    '',
+    'Generated image prompt to apply:',
     '',
     visualPrompt,
   ].join('\n');
@@ -88,6 +95,35 @@ export async function generateVisualAsset(request: GenerateVisualAssetRequest): 
     throw new Error(`Codex did not create the expected SVG file: ${vaultRelativePath}\n\n${transcript.trim()}`);
   }
 
-  await request.app.vault.process(request.file, (content) => `${content}\n\n![[${vaultRelativePath}]]\n`);
-  return { path: vaultRelativePath, transcript };
+  await request.app.vault.process(request.file, (content) => embedAtTop(content, vaultRelativePath));
+  return { path: vaultRelativePath, transcript: `Generated prompt:\n${visualPrompt}\n\n${transcript}` };
+}
+
+async function draftVisualPrompt(request: GenerateVisualAssetRequest): Promise<string> {
+  const prompt = buildPromptDraftRequest({
+    mode: request.mode,
+    userPrompt: request.userPrompt,
+    noteTitle: request.file.basename,
+    noteContent: request.noteContent,
+    selection: request.selection,
+  });
+
+  let drafted = '';
+  for await (const event of request.agent.query({
+    prompt,
+    cwd: request.vaultPath,
+    activeNotePath: request.file.path,
+    activeNoteContent: request.noteContent,
+    selectedText: request.selection,
+  })) {
+    if (event.type === 'text') drafted += event.content;
+  }
+
+  return drafted.trim();
+}
+
+function embedAtTop(content: string, vaultRelativePath: string): string {
+  const embed = `![[${vaultRelativePath}]]`;
+  if (content.includes(embed)) return content;
+  return `${embed}\n\n${content}`;
 }

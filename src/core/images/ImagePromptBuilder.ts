@@ -34,6 +34,34 @@ export function buildImagePrompt(options: {
   }
 
   parts.push('Avoid tiny unreadable text. Prefer visual synthesis, clear composition, and a premium OpenAI-adjacent monochrome/green design language when appropriate.');
+  parts.push('For Korean text, use concise Korean labels and specify font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif. Do not convert Korean text into broken outlines or garbled Latin placeholders.');
   return parts.join('\n\n');
 }
 
+export function buildPromptDraftRequest(options: {
+  mode: ImageMode;
+  userPrompt: string;
+  noteTitle?: string;
+  noteContent?: string;
+  selection?: string;
+}): string {
+  const source = options.selection || options.noteContent || '';
+  return [
+    'Analyze the provided Obsidian note and write a production-ready prompt for generating one SVG visual asset.',
+    '',
+    'Output only the final image-generation prompt. Do not include commentary, markdown fences, or alternatives.',
+    '',
+    'The prompt must include:',
+    `- Visual format: ${options.mode}`,
+    '- The core message extracted from the note',
+    '- Recommended composition/layout',
+    '- 3 to 7 concise Korean labels if labels are useful',
+    '- Clear instruction to preserve Korean text legibility',
+    '- SVG-safe typography using Pretendard, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif',
+    '- Avoidance of tiny text, clutter, and garbled Korean',
+    '',
+    options.noteTitle ? `Note title: ${options.noteTitle}` : '',
+    source.trim() ? `Source note:\n${source.slice(0, 7000)}` : '',
+    options.userPrompt.trim() ? `User direction:\n${options.userPrompt.trim()}` : '',
+  ].filter(Boolean).join('\n\n');
+}

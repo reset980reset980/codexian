@@ -28,7 +28,7 @@ export class ImageGenerationModal extends Modal {
     contentEl.empty();
     contentEl.createEl('h2', { text: 'Generate Codexian visual asset' });
     contentEl.createEl('p', {
-      text: 'Codexian will ask Codex CLI to create an SVG from the current note and embed it. No API key is used.',
+      text: 'Codexian will analyze the current note, draft an image prompt, generate an SVG with Codex CLI, and embed it at the top. No API key is used.',
     });
 
     new Setting(contentEl)
@@ -63,7 +63,7 @@ export class ImageGenerationModal extends Modal {
     new Setting(contentEl)
       .addButton((button) => {
         button
-          .setButtonText('Generate SVG and embed')
+          .setButtonText('Analyze note, generate SVG, and embed')
           .setCta()
           .onClick(() => {
             this.resolve?.({ mode: this.mode, prompt: this.prompt });
