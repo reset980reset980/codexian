@@ -56,6 +56,11 @@ export class ImageGenerationModal extends Modal {
           .addOption('cartoon', 'Cartoon')
           .addOption('concept', 'Concept art')
           .addOption('diagram', 'Diagram illustration')
+          .addOption('thumbnail', 'YouTube thumbnail')
+          .addOption('avatar', 'Profile / avatar')
+          .addOption('product', 'Product marketing')
+          .addOption('ecommerce', 'E-commerce hero')
+          .addOption('ui', 'UI / app mockup')
           .setValue(this.mode)
           .onChange((value) => {
             this.mode = value as ImageMode;

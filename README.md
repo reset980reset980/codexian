@@ -15,7 +15,7 @@ Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your va
 
 ## Current Release
 
-Latest BRAT release: **0.2.13**
+Latest BRAT release: **0.2.14**
 
 Install with:
 
@@ -50,6 +50,7 @@ Core chat works through your authenticated Codex CLI session. Codexian does **no
 - **Codex visual assets**: Generate PNG or SVG infographics, posters, cartoons, concept-art boards, or diagram-like illustrations from note context.
 - **Codex built-in PNG generation**: Use Codex CLI `image_generation` to generate real PNG images, then embed them into the note.
 - **Prompt-drafted visual generation**: Codexian analyzes the current note, drafts an image-generation prompt, then applies that prompt to create the selected PNG or SVG output.
+- **GPT Image 2 prompt recipes**: Visual prompts are structured with subject, composition, style, environment, lighting, typography, details, and aspect ratio, with category recipes for thumbnails, infographics, posters, UI mockups, products, avatars, and storyboards.
 - **Editable visual prompt preview**: Review and edit the generated image prompt before Codexian creates the visual.
 - **Visual generation progress modal**: Image creation shows each step in a modal and writes progress/error messages to the console.
 - **Automatic top embedding**: Generated PNG/SVG files are saved into the configured attachment folder and embedded at the top of the active note with `![[...]]`.
