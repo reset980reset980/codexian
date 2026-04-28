@@ -21,6 +21,7 @@ export class CodexianView extends ItemView {
   private messages: ConversationMessage[] = [];
   private relatedNotes: MemoryMapResult[] = [];
   private hiddenRelatedPaths = new Set<string>();
+  private memoryMapRenderToken = 0;
   private isRunning = false;
 
   constructor(leaf: WorkspaceLeaf, plugin: CodexianPlugin) {
@@ -207,9 +208,12 @@ export class CodexianView extends ItemView {
 
   private async renderMemoryMapPanel(): Promise<void> {
     if (!this.memoryMapEl) return;
-    this.memoryMapEl.empty();
+    const renderToken = ++this.memoryMapRenderToken;
 
     const status = await this.plugin.getMemoryMapStatus();
+    if (renderToken !== this.memoryMapRenderToken || !this.memoryMapEl) return;
+
+    this.memoryMapEl.empty();
     const header = this.memoryMapEl.createDiv({ cls: 'oc-memory-map-header' });
     const title = header.createDiv({ cls: 'oc-memory-map-title' });
     setIcon(title.createSpan({ cls: 'oc-memory-map-icon' }), 'network');
