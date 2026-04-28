@@ -297,6 +297,9 @@ export class CodexianView extends ItemView {
       const context = await this.plugin.getActiveNoteContext();
       let assistantBuffer = '';
       const assistantEl = this.createMessageEl('assistant');
+      const progressEl = assistantEl.createDiv({ cls: 'oc-thinking' });
+      progressEl.createSpan({ text: 'Codex is working' });
+      const progressHintEl = progressEl.createSpan({ text: ' · starting...', cls: 'oc-thinking-hint' });
       const contentEl = assistantEl.createDiv({ cls: 'oc-message-content' });
 
       for await (const event of this.plugin.agent.query({
@@ -309,11 +312,17 @@ export class CodexianView extends ItemView {
       })) {
         if (event.type === 'text') {
           assistantBuffer += event.content;
+          progressEl.remove();
           await this.renderMarkdown(assistantBuffer, contentEl);
+        } else if (event.type === 'progress') {
+          progressHintEl.setText(` · ${event.content}`);
         } else if (event.type === 'error') {
+          progressEl.remove();
           this.appendMessage({ role: 'error', content: event.content, timestamp: Date.now() });
         }
       }
+
+      progressEl.remove();
 
       if (assistantBuffer.trim()) {
         this.messages.push({ role: 'assistant', content: assistantBuffer, timestamp: Date.now() });

@@ -15,7 +15,7 @@ Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your va
 
 ## Current Release
 
-Latest BRAT release: **0.1.8**
+Latest BRAT release: **0.1.9**
 
 Install with:
 
@@ -36,6 +36,7 @@ Core chat works through your authenticated Codex CLI session. Codexian does **no
 - **Fast composer UX**: Press Enter to send, or Shift+Enter for a new line.
 - **ObsidianCode legacy UI**: The chat shell, message bubbles, input box, toolbar, note chips, and stylesheet are carried from ObsidianCode's `.oc-*` legacy.
 - **Clean Codex replies**: Codexian reads Codex's final response from `--output-last-message` so session headers, hooks, and token logs stay out of the chat.
+- **Visible Codex progress**: Important Codex CLI status lines are shown while the final answer is being generated.
 - **Vault working directory**: Codex runs with the vault as its working root.
 - **Permission modes**: Review, Auto, and Yolo modes map to Codex sandbox behavior.
 - **No API key for core use**: Codexian uses your authenticated Codex CLI session, like ObsidianCode uses Claude Code CLI.

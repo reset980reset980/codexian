@@ -41,6 +41,7 @@ export interface AgentQuery {
 
 export type AgentEvent =
   | { type: 'text'; content: string }
+  | { type: 'progress'; content: string }
   | { type: 'error'; content: string }
   | { type: 'done' };
 

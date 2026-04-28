@@ -83,24 +83,25 @@ export class CodexProvider implements AgentProvider {
 
   private buildPrompt(input: AgentQuery): string {
     const parts: string[] = [];
-    parts.push(input.prompt);
+    parts.push('You are running inside an Obsidian vault. Keep edits vault-scoped unless the user explicitly requests otherwise.');
+    parts.push('\n\nUse the provided Obsidian note context whenever the user refers to "this note", "current note", "이 노트", "현재 노트", or asks to summarize/analyze the note.');
 
     if (input.activeNotePath && input.activeNoteContent) {
-      parts.push(`\n\nActive Obsidian note: ${input.activeNotePath}\n\n${input.activeNoteContent}`);
+      parts.push(`\n\n<active_obsidian_note path="${input.activeNotePath}">\n${input.activeNoteContent}\n</active_obsidian_note>`);
     }
 
     if (input.selectedText) {
-      parts.push(`\n\nSelected text:\n${input.selectedText}`);
+      parts.push(`\n\n<selected_text>\n${input.selectedText}\n</selected_text>`);
     }
 
     if (input.pinnedNotes && input.pinnedNotes.length > 0) {
       const pinned = input.pinnedNotes
-        .map((note) => `Pinned Obsidian note: ${note.path}\n\n${note.content}`)
+        .map((note) => `<pinned_obsidian_note path="${note.path}">\n${note.content}\n</pinned_obsidian_note>`)
         .join('\n\n---\n\n');
-      parts.push(`\n\nPinned context notes:\n${pinned}`);
+      parts.push(`\n\n<pinned_context_notes>\n${pinned}\n</pinned_context_notes>`);
     }
 
-    parts.push('\n\nYou are running inside an Obsidian vault. Keep edits vault-scoped unless the user explicitly requests otherwise.');
+    parts.push(`\n\n<user_request>\n${input.prompt}\n</user_request>`);
     return parts.join('');
   }
 
@@ -121,13 +122,23 @@ export class CodexProvider implements AgentProvider {
     child.stdin?.end(stdin);
 
     const queue: AgentEvent[] = [];
+    let stdoutBuffer = '';
+    let lastProgress = '';
     let stderrBuffer = '';
     let done = false;
     let exitCode: number | null = null;
 
     child.stdout.on('data', (chunk: Buffer) => {
-      // Codex CLI stdout includes session headers, hook logs, token reports, and
-      // sometimes the final answer. The UI reads only --output-last-message.
+      stdoutBuffer += chunk.toString();
+      const lines = stdoutBuffer.split(/\r?\n/);
+      stdoutBuffer = lines.pop() || '';
+      for (const line of lines) {
+        const progress = this.formatProgressLine(line);
+        if (progress && progress !== lastProgress) {
+          lastProgress = progress;
+          queue.push({ type: 'progress', content: progress });
+        }
+      }
     });
     child.stderr.on('data', (chunk: Buffer) => {
       stderrBuffer += chunk.toString();
@@ -168,6 +179,23 @@ export class CodexProvider implements AgentProvider {
 
     this.removeTempFile(outputPath);
     this.currentProcess = null;
+  }
+
+  private formatProgressLine(line: string): string {
+    const cleaned = line.replace(/\u001b\[[0-9;?]*[ -/]*[@-~]/g, '').trim();
+    if (!cleaned) return '';
+    if (/^user$/i.test(cleaned) || /^codex$/i.test(cleaned)) return '';
+    if (/^tokens used\b/i.test(cleaned)) return cleaned;
+    if (/^OpenAI Codex\b/i.test(cleaned)) return cleaned;
+    if (/^workdir:/i.test(cleaned)) return cleaned;
+    if (/^model:/i.test(cleaned)) return cleaned;
+    if (/^approval:/i.test(cleaned)) return cleaned;
+    if (/^sandbox:/i.test(cleaned)) return cleaned;
+    if (/^session id:/i.test(cleaned)) return cleaned;
+    if (/^hook:/i.test(cleaned)) return cleaned;
+    if (/\bERROR\b/.test(cleaned)) return cleaned;
+    if (/^(read|write|edit|apply|patch|search|run|exec|open|thinking|reasoning|update|create|delete|move)\b/i.test(cleaned)) return cleaned;
+    return '';
   }
 
   private readLastMessage(outputPath: string): string {
