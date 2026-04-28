@@ -335,12 +335,13 @@ export default class CodexianPlugin extends Plugin {
 
       const promptForReview = draftedPrompt || buildImagePrompt({
         mode: input.mode,
+        outputType: input.outputType,
         userPrompt: input.prompt,
         noteTitle: activeFile.basename,
         noteContent,
         selection: context.selection,
       });
-      const reviewedPrompt = await new VisualPromptPreviewModal(this.app, promptForReview).openAndWait();
+      const reviewedPrompt = await new VisualPromptPreviewModal(this.app, promptForReview, input.outputType).openAndWait();
       if (!reviewedPrompt) return;
 
       const generationProgressModal = new VisualGenerationProgressModal(this.app);

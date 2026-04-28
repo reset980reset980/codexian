@@ -10,6 +10,7 @@ const MODE_DIRECTIVES: Record<ImageMode, string> = {
 
 export function buildImagePrompt(options: {
   mode: ImageMode;
+  outputType?: VisualOutputType;
   userPrompt: string;
   noteTitle?: string;
   noteContent?: string;
@@ -34,7 +35,11 @@ export function buildImagePrompt(options: {
   }
 
   parts.push('Avoid tiny unreadable text. Prefer visual synthesis, clear composition, and a premium OpenAI-adjacent monochrome/green design language when appropriate.');
-  parts.push('For Korean text, use concise Korean labels and specify font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif. Do not convert Korean text into broken outlines or garbled Latin placeholders.');
+  if (options.outputType === 'png') {
+    parts.push('For Korean text in the PNG image, use only short, large, high-contrast Korean labels. Avoid long paragraphs, tiny captions, and garbled placeholder glyphs.');
+  } else {
+    parts.push('For Korean text, use concise Korean labels and specify font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif. Do not convert Korean text into broken outlines or garbled Latin placeholders.');
+  }
   return parts.join('\n\n');
 }
 

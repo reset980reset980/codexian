@@ -4,7 +4,13 @@ import type CodexianPlugin from '../../main';
 import type { PermissionMode, ReasoningEffort } from '../../core/types';
 import { findCodexCli } from '../../core/codex/CodexCliResolver';
 import { buildProcessEnv } from '../../core/settings/env';
-import { getInstallPreview, installOrUpdateOmx } from '../../core/installer/OmxInstaller';
+import {
+  enableCodexImageGeneration,
+  getCodexUpdatePreview,
+  getInstallPreview,
+  installOrUpdateOmx,
+  updateCodexCli,
+} from '../../core/installer/OmxInstaller';
 import { probeEnvironment } from '../../core/installer/EnvironmentProbe';
 
 export class CodexianSettingsTab extends PluginSettingTab {
@@ -117,7 +123,7 @@ export class CodexianSettingsTab extends PluginSettingTab {
     const imageCard = containerEl.createDiv({ cls: 'codexian-settings-card' });
     imageCard.createEl('h3', { text: 'Visual assets' });
     imageCard.createEl('p', {
-      text: 'Codexian uses Codex CLI to create SVG visuals from notes. No API key is required.',
+      text: 'Codexian uses Codex CLI to create PNG or SVG visuals from notes. PNG generation requires a recent Codex CLI with image_generation enabled. No API key is required.',
     });
     new Setting(imageCard)
       .setName('Media folder')
@@ -144,6 +150,22 @@ export class CodexianSettingsTab extends PluginSettingTab {
 
     this.diagnosticsEl = omxCard.createDiv({ cls: 'codexian-status-line' });
     this.diagnosticsEl.setText('Diagnostics not run yet.');
+
+    const codexUpdateCard = containerEl.createDiv({ cls: 'codexian-settings-card' });
+    codexUpdateCard.createEl('h3', { text: 'Codex CLI update' });
+    codexUpdateCard.createEl('p', {
+      text: 'Update Codex CLI and enable the built-in image_generation feature used for PNG visual assets.',
+    });
+    codexUpdateCard.createEl('pre', { cls: 'codexian-status-line', text: getCodexUpdatePreview() });
+
+    new Setting(codexUpdateCard)
+      .addButton((button) => button
+        .setButtonText('Update Codex CLI')
+        .setCta()
+        .onClick(() => void this.updateCodexCli()))
+      .addButton((button) => button
+        .setButtonText('Enable image generation')
+        .onClick(() => void this.enableImageGeneration()));
   }
 
   private async runDiagnostics(): Promise<void> {
@@ -171,6 +193,36 @@ export class CodexianSettingsTab extends PluginSettingTab {
       const message = error instanceof Error ? error.message : String(error);
       this.diagnosticsEl.appendText(`\nFAILED: ${message}`);
       new Notice(`Codexian setup failed: ${message}`);
+    }
+  }
+
+  private async updateCodexCli(): Promise<void> {
+    if (!this.diagnosticsEl) return;
+    this.diagnosticsEl.setText('Updating Codex CLI...\n');
+    try {
+      await updateCodexCli(this.plugin.settings.environmentVariables, (line) => {
+        this.diagnosticsEl?.appendText(line);
+      });
+      new Notice('Codex CLI update completed.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.diagnosticsEl.appendText(`\nFAILED: ${message}`);
+      new Notice(`Codex CLI update failed: ${message}`);
+    }
+  }
+
+  private async enableImageGeneration(): Promise<void> {
+    if (!this.diagnosticsEl) return;
+    this.diagnosticsEl.setText('Enabling Codex image_generation...\n');
+    try {
+      await enableCodexImageGeneration(this.plugin.settings.environmentVariables, (line) => {
+        this.diagnosticsEl?.appendText(line);
+      });
+      new Notice('Codex image_generation enabled.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.diagnosticsEl.appendText(`\nFAILED: ${message}`);
+      new Notice(`Codex image_generation setup failed: ${message}`);
     }
   }
 }

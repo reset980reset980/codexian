@@ -11,11 +11,11 @@ OpenAI Codex and oh-my-codex setup inside Obsidian, with no API key required for
   </a>
 </p>
 
-Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your vault as a sidebar agent. It is designed for note-aware coding, writing, refactoring, local automation, and visual SVG asset generation from your Obsidian notes.
+Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your vault as a sidebar agent. It is designed for note-aware coding, writing, refactoring, local automation, and visual PNG/SVG asset generation from your Obsidian notes.
 
 ## Current Release
 
-Latest BRAT release: **0.2.9**
+Latest BRAT release: **0.2.10**
 
 Install with:
 
@@ -46,13 +46,15 @@ Core chat works through your authenticated Codex CLI session. Codexian does **no
 - **Vault working directory**: Codex runs with the vault as its working root.
 - **Permission modes**: Review, Auto, and Yolo modes map to Codex sandbox behavior.
 - **No API key for core use**: Codexian uses your authenticated Codex CLI session, like ObsidianCode uses Claude Code CLI.
-- **Codex visual assets**: Generate SVG infographics, posters, cartoons, concept-art boards, or diagram-like illustrations from note context.
+- **Codex visual assets**: Generate PNG or SVG infographics, posters, cartoons, concept-art boards, or diagram-like illustrations from note context.
 - **Codex built-in PNG generation**: Use Codex CLI `image_generation` to generate real PNG images, then embed them into the note.
-- **Prompt-drafted visual generation**: Codexian analyzes the current note, drafts an image-generation prompt, then applies that prompt to create the SVG.
-- **Editable visual prompt preview**: Review and edit the generated image prompt before Codexian creates the SVG.
+- **Prompt-drafted visual generation**: Codexian analyzes the current note, drafts an image-generation prompt, then applies that prompt to create the selected PNG or SVG output.
+- **Editable visual prompt preview**: Review and edit the generated image prompt before Codexian creates the visual.
 - **Visual generation progress modal**: Image creation shows each step in a modal and writes progress/error messages to the console.
-- **Automatic top embedding**: Generated SVG files are saved into the configured attachment folder and embedded at the top of the active note with `![[...]]`.
+- **Automatic top embedding**: Generated PNG/SVG files are saved into the configured attachment folder and embedded at the top of the active note with `![[...]]`.
 - **Korean-safe SVG guidance**: Visual generation prompts include Korean font fallbacks and instructions to avoid garbled Korean labels.
+- **One-click Codex update**: Settings can update Codex CLI and enable `image_generation` for PNG visual assets.
+- **Slash command pass-through**: Prompts beginning with `/` are sent to Codex CLI raw instead of being wrapped with note context.
 - **oh-my-codex setup**: Settings include diagnostics and an install/update flow for Codex CLI plus OMX.
 - **macOS and Windows aware**: CLI detection, diagnostics, and command previews adapt by platform.
 
@@ -67,6 +69,7 @@ The plugin also gives power users a path into [oh-my-codex](https://github.com/Y
 - Obsidian desktop.
 - Node.js 20+.
 - OpenAI Codex CLI installed and authenticated.
+- For PNG visual generation: a recent Codex CLI with `image_generation` enabled.
 - Optional: oh-my-codex for OMX workflows.
 
 Recommended CLI setup:
@@ -74,6 +77,7 @@ Recommended CLI setup:
 ```bash
 npm install -g @openai/codex oh-my-codex
 codex login
+codex features enable image_generation
 omx setup
 omx doctor
 ```

@@ -82,6 +82,11 @@ export class CodexProvider implements AgentProvider {
   }
 
   private buildPrompt(input: AgentQuery): string {
+    const rawPrompt = input.prompt.trim();
+    if (rawPrompt.startsWith('/')) {
+      return rawPrompt;
+    }
+
     const parts: string[] = [];
     parts.push('You are running inside an Obsidian vault. Keep edits vault-scoped unless the user explicitly requests otherwise.');
     parts.push('\n\nUse the provided Obsidian note context whenever the user refers to "this note", "current note", "이 노트", "현재 노트", or asks to summarize/analyze the note.');

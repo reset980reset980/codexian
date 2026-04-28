@@ -56,6 +56,7 @@ export async function generateVisualAsset(request: GenerateVisualAssetRequest): 
 
   const fallbackPrompt = buildImagePrompt({
     mode: request.mode,
+    outputType: request.outputType,
     userPrompt: request.userPrompt,
     noteTitle: request.file.basename,
     noteContent: request.noteContent,
