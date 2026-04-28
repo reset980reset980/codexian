@@ -17,7 +17,7 @@ Core chat and visual generation are routed through Codex CLI. Codexian does **no
 
 ## Current Release
 
-Latest BRAT release: **0.2.16**
+Latest BRAT release: **0.2.17**
 
 Install with:
 
@@ -72,6 +72,7 @@ Important details:
 - Embeds are inserted below YAML frontmatter/properties so Obsidian properties stay valid.
 - Korean text guidance is included to reduce garbled labels.
 - Prompt drafting uses GPT Image 2-style recipes: `subject`, `composition`, `style`, `environment`, `lighting`, `typography`, `details`, and `aspect_ratio`.
+- The progress modal shows Codex CLI steps while prompts and image files are being generated, copied, verified, and embedded.
 
 ## One-Click Setup Helpers
 

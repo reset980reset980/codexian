@@ -78,6 +78,7 @@ export async function generateVisualAsset(request: GenerateVisualAssetRequest): 
     selectedText: request.selection,
   })) {
     if (event.type === 'text') transcript += event.content;
+    if (event.type === 'progress') request.onProgress?.(`Codex: ${event.content}`);
     if (event.type === 'error') transcript += `\nERROR: ${event.content}`;
   }
 
@@ -159,6 +160,7 @@ export async function draftVisualPrompt(request: GenerateVisualAssetRequest): Pr
     selectedText: request.selection,
   })) {
     if (event.type === 'text') drafted += event.content;
+    if (event.type === 'progress') request.onProgress?.(`Codex: ${event.content}`);
     if (event.type === 'error') {
       request.onProgress?.(`Prompt draft warning: ${event.content}`);
       console.warn('[Codexian visual] Prompt draft warning:', event.content);

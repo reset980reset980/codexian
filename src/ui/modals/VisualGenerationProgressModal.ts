@@ -22,8 +22,10 @@ export class VisualGenerationProgressModal extends Modal {
   addStep(message: string): void {
     console.log(`[Codexian visual] ${message}`);
     this.statusEl?.setText(message);
+    if (this.listEl?.lastElementChild?.textContent === message) return;
     const item = this.listEl?.createDiv({ cls: 'codexian-visual-progress-item is-running' });
     item?.setText(message);
+    item?.scrollIntoView({ block: 'nearest' });
   }
 
   finish(message: string, state: VisualProgressState): void {
@@ -34,6 +36,7 @@ export class VisualGenerationProgressModal extends Modal {
     this.statusEl?.toggleClass('is-error', state === 'error');
     const item = this.listEl?.createDiv({ cls: `codexian-visual-progress-item is-${state}` });
     item?.setText(message);
+    item?.scrollIntoView({ block: 'nearest' });
   }
 
   onClose(): void {
