@@ -15,7 +15,7 @@ Codexian is a desktop-only Obsidian plugin that brings OpenAI Codex into your va
 
 ## Current Release
 
-Latest BRAT release: **0.2.2**
+Latest BRAT release: **0.2.3**
 
 Install with:
 
@@ -34,6 +34,7 @@ Core chat works through your authenticated Codex CLI session. Codexian does **no
 - **Memory Map**: Build a local vault index and use **Find Context** to recommend related notes from the current note.
 - **Related note chips**: Add recommended notes to Codexian context with `+`, hide noisy recommendations with `x`, or click a chip to open the note.
 - **Clear recommendation reasons**: Hover a Memory Map recommendation to see why it was selected.
+- **Improved local ranking**: Memory Map filters URL noise and uses weighted title/tag/link/heading signals plus BM25-style term scoring.
 - **Stable note chips**: Current-note chips stay visible when the sidebar takes focus, matching ObsidianCode behavior.
 - **Attach current note command**: Use Obsidian's hotkey settings to bind `Codexian: Attach current note to chat`.
 - **Fast composer UX**: Press Enter to send, or Shift+Enter for a new line.
@@ -135,7 +136,7 @@ User flow:
 4. Codexian recommends related notes with clear reasons.
 5. Add useful notes to the chat context with `+`.
 
-The first version uses a local rule-based index of note titles, tags, links, backlinks, headings, keywords, folders, and modified times. This gives fast results without an API key. Later versions can add optional local embeddings, Ollama embeddings, or OpenAI API embeddings while keeping the default workflow simple.
+Memory Map uses a local rule-based index of note titles, tags, links, backlinks, headings, keywords, folders, and modified times. Ranking filters URL noise and combines strong structural signals with BM25-style term scoring. This gives fast results without an API key. Later versions can add optional local embeddings, Ollama embeddings, or OpenAI API embeddings while keeping the default workflow simple.
 
 Memory Map data is saved locally in the vault:
 

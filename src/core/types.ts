@@ -10,11 +10,13 @@ export interface MemoryMapEntry {
   links: string[];
   headings: string[];
   keywords: string[];
+  terms: Record<string, number>;
+  length: number;
   mtime: number;
 }
 
 export interface MemoryMapIndex {
-  version: 1;
+  version: 2;
   builtAt: number;
   entries: MemoryMapEntry[];
 }
