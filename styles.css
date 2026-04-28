@@ -3680,6 +3680,7 @@ code .oc-file-link:hover {
   z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .oc-slash-dropdown.visible {

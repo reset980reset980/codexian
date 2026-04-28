@@ -19,6 +19,16 @@ const CODEX_SLASH_COMMANDS = [
   { name: '/compact', hint: 'Compact context', description: 'Ask Codex to compact the current conversation context.' },
   { name: '/diff', hint: 'Review changes', description: 'Ask Codex to summarize current git/worktree changes.' },
   { name: '/clear', hint: 'Clear context', description: 'Ask Codex to clear or reset the active conversation context.' },
+  { name: '/new', hint: 'New session', description: 'Start a fresh Codex session when the CLI surface supports it.' },
+  { name: '/resume', hint: 'Resume session', description: 'Resume a previous Codex session when available.' },
+  { name: '/login', hint: 'Authenticate', description: 'Open or request Codex login/authentication guidance.' },
+  { name: '/logout', hint: 'Sign out', description: 'Open or request Codex logout guidance.' },
+  { name: '/doctor', hint: 'Diagnostics', description: 'Ask Codex to inspect CLI setup, auth, PATH, and environment issues.' },
+  { name: '/features', hint: 'Feature flags', description: 'Ask Codex to list or manage CLI feature flags such as image_generation.' },
+  { name: '/memory', hint: 'Memory', description: 'Ask Codex to inspect or update available memory context.' },
+  { name: '/review', hint: 'Review changes', description: 'Ask Codex to review local changes and identify risks.' },
+  { name: '/tests', hint: 'Run tests', description: 'Ask Codex to run or suggest the relevant verification commands.' },
+  { name: '/image', hint: 'Generate image', description: 'Ask Codex to use built-in image generation when enabled.' },
 ];
 
 export class CodexianView extends ItemView {
@@ -151,6 +161,7 @@ export class CodexianView extends ItemView {
     });
 
     this.slashDropdownEl = inputWrapper.createDiv({ cls: 'oc-slash-dropdown' });
+    this.slashDropdownEl.addEventListener('wheel', (event) => event.stopPropagation());
 
     const toolbar = inputWrapper.createDiv({ cls: 'oc-input-toolbar' });
     this.buildModelSelector(toolbar);
@@ -492,7 +503,10 @@ export class CodexianView extends ItemView {
 
     for (const [index, command] of commands.entries()) {
       const item = this.slashDropdownEl.createDiv({ cls: 'oc-slash-item' });
-      if (index === this.selectedSlashCommandIndex) item.addClass('selected');
+      if (index === this.selectedSlashCommandIndex) {
+        item.addClass('selected');
+        window.requestAnimationFrame(() => item.scrollIntoView({ block: 'nearest' }));
+      }
       item.createSpan({ cls: 'oc-slash-name', text: command.name });
       item.createSpan({ cls: 'oc-slash-hint', text: command.hint });
       item.createDiv({ cls: 'oc-slash-desc', text: command.description });
