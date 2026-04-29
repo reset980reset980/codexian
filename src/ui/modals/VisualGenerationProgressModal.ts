@@ -14,8 +14,8 @@ export class VisualGenerationProgressModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass('codexian-visual-progress-modal');
-    contentEl.createEl('h2', { text: 'Generating Codexian visual asset' });
-    this.statusEl = contentEl.createDiv({ cls: 'codexian-visual-progress-status', text: 'Starting...' });
+    contentEl.createEl('h2', { text: 'Codexian 시각 자료 생성 중' });
+    this.statusEl = contentEl.createDiv({ cls: 'codexian-visual-progress-status', text: '시작 중...' });
     this.listEl = contentEl.createDiv({ cls: 'codexian-visual-progress-list' });
   }
 

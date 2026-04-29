@@ -23,15 +23,15 @@ export class VisualPromptPreviewModal extends Modal {
   onOpen(): void {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.createEl('h2', { text: 'Review generated image prompt' });
+    contentEl.createEl('h2', { text: '생성된 이미지 프롬프트 검토' });
     const outputLabel = this.outputType.toUpperCase();
     contentEl.createEl('p', {
-      text: `Codexian drafted this prompt from the current note. Edit it if needed, then generate the ${outputLabel} visual asset.`,
+      text: `Codexian이 현재 노트에서 이 프롬프트를 작성했습니다. 필요하면 수정한 뒤 ${outputLabel} 시각 자료를 생성하세요.`,
     });
 
     new Setting(contentEl)
-      .setName('Generated prompt')
-      .setDesc(`This structured prompt will be applied to the ${outputLabel} generation step.`)
+      .setName('생성된 프롬프트')
+      .setDesc(`이 구조화 프롬프트가 ${outputLabel} 생성 단계에 적용됩니다.`)
       .addTextArea((text) => {
         text
           .setValue(this.prompt)
@@ -45,7 +45,7 @@ export class VisualPromptPreviewModal extends Modal {
     new Setting(contentEl)
       .addButton((button) => {
         button
-          .setButtonText(`Generate ${outputLabel} with this prompt`)
+          .setButtonText(`이 프롬프트로 ${outputLabel} 생성`)
           .setCta()
           .onClick(() => {
             this.resolve?.(this.prompt.trim());
@@ -55,7 +55,7 @@ export class VisualPromptPreviewModal extends Modal {
       })
       .addButton((button) => {
         button
-          .setButtonText('Cancel')
+          .setButtonText('취소')
           .onClick(() => {
             this.resolve?.(null);
             this.resolve = null;

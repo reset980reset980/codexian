@@ -3,7 +3,7 @@
   "name": "Codexian",
   "version": "0.2.18",
   "minAppVersion": "1.5.0",
-  "description": "Run OpenAI Codex in your Obsidian vault, generate PNG or SVG visuals from notes, and set up oh-my-codex.",
+  "description": "Obsidian 볼트에서 OpenAI Codex를 실행하고, 노트 기반 시각 자료와 숙고 사고 노트를 생성하며, oh-my-codex를 설정합니다.",
   "author": "reallygood83",
   "authorUrl": "https://x.com/reallygood83",
   "fundingUrl": {

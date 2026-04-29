@@ -1,6 +1,6 @@
 # Codexian
 
-Run OpenAI Codex CLI inside Obsidian, with note context, Sukgo thinking tools, visual generation, Memory Map search, and one-click setup helpers.
+Obsidian 안에서 OpenAI Codex CLI를 실행하는 데스크톱 전용 플러그인입니다. 활성 노트 컨텍스트, 메모리 맵, 시각 자료 생성, 숙고 사고 도구, Codex/OMX 설치 보조 기능을 Obsidian 사이드바에서 바로 사용할 수 있습니다.
 
 <p align="center">
   <a href="https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v">
@@ -11,95 +11,180 @@ Run OpenAI Codex CLI inside Obsidian, with note context, Sukgo thinking tools, v
   </a>
 </p>
 
-Codexian is a desktop-only Obsidian plugin that wraps your authenticated Codex CLI session. It is built for users who want an ObsidianCode-like agent sidebar, but powered by Codex instead of Claude Code.
+Codexian은 인증된 Codex CLI 세션을 감싸서 ObsidianCode 같은 에이전트 사이드바 경험을 제공합니다. 일반 사용에는 OpenAI API 키가 필요하지 않고, Codex CLI 로그인 상태를 그대로 사용합니다.
 
-Core chat and visual generation are routed through Codex CLI. Codexian does **not** require an OpenAI API key for normal use.
+## 현재 릴리스
 
-## Current Release
+최신 BRAT 릴리스: **0.2.18**
 
-Latest BRAT release: **0.2.18**
-
-Install with:
+BRAT 설치 URL:
 
 ```text
 https://github.com/reallygood83/codexian
 ```
 
-## What It Does
+## 주요 기능
 
-- **Codex sidebar in Obsidian**: Chat with Codex from a native sidebar using an ObsidianCode-style interface.
-- **Automatic note context**: The active note, selected text, and pinned notes can be sent to Codex automatically.
-- **Pinned and dismissible note chips**: Pin important notes with `+` or remove noisy notes with `x`.
-- **Memory Map**: Build a local vault index, find related notes, and add them to context with clear hover reasons.
-- **Sukgo Thinking**: Run structured thinking frameworks such as Steel-manning, Pre-mortem, 6 Hats, 5 Whys, and Decision Matrix from the sidebar.
-- **Visible Codex work timeline**: Codex CLI progress lines are shown as a step-by-step timeline while the final answer is being generated.
-- **Slash command menu**: Type `/` to open a scrollable Codex-style command menu.
-- **Model selector**: Includes `gpt-5.5`, `gpt-5.4`, and fallback Codex model options. Settings still allow manual model IDs.
-- **Windows-aware Codex launch**: Avoids known `codex.cmd` spawn issues by running the Codex Node entrypoint directly when needed.
-- **Permission modes**: Review, Auto, and Yolo map to Codex sandbox behavior.
-- **Obsidian appearance-aware text**: Chat and composer text follow your Obsidian font, size, and line-height settings.
+- **Obsidian 안의 Codex 사이드바**: ObsidianCode 스타일 UI에서 Codex와 대화합니다.
+- **노트 컨텍스트 자동 첨부**: 활성 노트, 선택 텍스트, 고정 노트를 Codex 프롬프트에 자동 포함할 수 있습니다.
+- **고정/제외 가능한 노트 칩**: `+`로 관련 노트를 컨텍스트에 추가하고, `x`로 제외합니다.
+- **메모리 맵**: 볼트를 로컬로 색인하고 현재 노트와 관련된 노트를 추천합니다.
+- **숙고 사고**: 스틸맨 논증, 악마의 대변인, 프리모템, 여섯 색깔 모자, 역발상, 5 Whys, 의사결정 매트릭스, 제1원리 사고, OODA 루프, 툴민 논증 모델을 실행합니다.
+- **시각 자료 생성**: 현재 노트를 분석해 PNG 또는 SVG 시각 자료를 생성하고 노트에 삽입합니다.
+- **Codex 작업 단계 표시**: Codex CLI 진행 메시지를 타임라인으로 보여줍니다.
+- **슬래시 명령 메뉴**: 입력창에서 `/`를 입력하면 Codex 스타일 명령 메뉴가 열립니다.
+- **모델/추론/권한 설정**: 모델, 추론 수준, 검토/자동/무제한 권한 모드를 설정합니다.
+- **한글화된 메뉴와 설정**: 명령 팔레트, 사이드바, 설정 화면, 모달, 알림, README가 한국어 기준으로 정리되어 있습니다.
+- **Windows 대응 Codex 실행**: `codex.cmd` 실행 문제가 있을 때 내부적으로 `@openai/codex/bin/codex.js`를 `node`로 실행합니다.
 
-## Visual Generation
+## 숙고 사고
 
-Codexian can generate and embed PNG or SVG visual assets from the current note.
+숙고 사고는 [`sukgo`](https://github.com/reallygood83/sukgo)의 의사결정/사고 프레임워크를 Codexian 안에 네이티브로 결합한 기능입니다.
 
-Supported visual types:
+Python `sukgo` CLI를 직접 실행하지 않습니다. 대신 Codexian의 기존 Codex CLI 연결, 활성 노트, 선택 텍스트, 고정 노트, 메모리 맵 관련 노트를 함께 보내 Obsidian Markdown 분석 노트를 생성합니다.
 
-- Infographic
-- Poster
-- Cartoon / storyboard
-- Concept art
-- Diagram illustration
-- YouTube thumbnail
-- Profile / avatar
-- Product marketing
-- E-commerce hero image
-- UI / app mockup
+포함된 도구:
 
-Flow:
+- 스틸맨 논증
+- 악마의 대변인
+- 프리모템
+- 여섯 색깔 모자
+- 역발상
+- 5 Whys
+- 의사결정 매트릭스
+- 제1원리 사고
+- OODA 루프
+- 툴민 논증 모델
 
-1. Open a note.
-2. Click the image button in the Codexian sidebar.
-3. Choose `PNG via Codex image generation` or `SVG via Codex code generation`.
-4. Choose a visual format.
-5. Codexian analyzes the note and drafts a production-ready image prompt.
-6. Review or edit the prompt.
-7. Codexian generates the asset and embeds it into the note.
+사용 흐름:
 
-Important details:
+1. 노트를 열거나 `숙고 사고` 패널에 직접 주제를 입력합니다.
+2. 사고 도구를 선택합니다.
+3. **실행**을 누릅니다.
+4. Codexian이 활성 노트, 선택 텍스트, 고정 노트, 메모리 맵 관련 노트를 Codex에 전달합니다.
+5. 결과가 설정된 숙고 출력 폴더에 Markdown 노트로 저장되고 자동으로 열립니다.
 
-- PNG generation uses Codex CLI built-in `image_generation`.
-- SVG generation uses Codex CLI to write a text-safe SVG file.
-- Generated assets are saved to the configured media folder.
-- Embeds are inserted below YAML frontmatter/properties so Obsidian properties stay valid.
-- Korean text guidance is included to reduce garbled labels.
-- Prompt drafting uses GPT Image 2-style recipes: `subject`, `composition`, `style`, `environment`, `lighting`, `typography`, `details`, and `aspect_ratio`.
-- The progress modal shows Codex CLI steps while prompts and image files are being generated, copied, verified, and embedded.
+기본 출력 폴더:
 
-## One-Click Setup Helpers
+```text
+Sukgo/
+```
 
-Open Obsidian Settings → Community plugins → Codexian.
+명령 팔레트:
 
-Codexian settings include:
+- `Codexian: 숙고 사고 도구 실행`
+- `Codexian: 숙고: 스틸맨 논증`
+- `Codexian: 숙고: 악마의 대변인`
+- `Codexian: 숙고: 프리모템`
+- `Codexian: 숙고: 여섯 색깔 모자`
+- `Codexian: 숙고: 역발상`
+- `Codexian: 숙고: 5 Whys`
+- `Codexian: 숙고: 의사결정 매트릭스`
+- `Codexian: 숙고: 제1원리 사고`
+- `Codexian: 숙고: OODA 루프`
+- `Codexian: 숙고: 툴민 논증 모델`
 
-- **Run diagnostics**: Check whether Obsidian can find `codex`, `npm`, `node`, `git`, and `omx`.
-- **Install / update Codex + OMX**: Installs `@openai/codex` and `oh-my-codex`, then runs `omx setup` and `omx doctor`.
-- **Update Codex CLI**: Runs `npm install -g @openai/codex@latest`.
-- **Enable image generation**: Runs `codex features enable image_generation`.
-- **Install / update Obsidian Skills**: Installs [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills) into `~/.codex/skills`.
+## 메모리 맵
 
-`obsidian-skills` is not an Obsidian community plugin. It is an Agent Skills repository that teaches Codex CLI about Obsidian Markdown, Bases, JSON Canvas, Obsidian CLI workflows, and Defuddle web extraction.
+메모리 맵은 API 없이 로컬에서 관련 노트를 찾는 기능입니다.
 
-## Requirements
+사용 흐름:
 
-- Obsidian desktop.
-- Node.js 20+.
-- Git, for one-click Obsidian Skills installation.
-- OpenAI Codex CLI installed and authenticated.
-- A recent Codex CLI with `image_generation` enabled for PNG visual generation.
-- Optional: oh-my-codex for advanced OMX workflows.
+1. **메모리 맵 빌드**를 한 번 눌러 볼트를 색인합니다.
+2. 아무 노트나 엽니다.
+3. **컨텍스트 찾기**를 누릅니다.
+4. Codexian이 관련 노트를 추천하고 추천 이유를 표시합니다.
+5. 필요한 노트는 `+`로 Codexian 컨텍스트에 추가합니다.
 
-Recommended CLI setup:
+메모리 맵은 노트 제목, 태그, 링크, 백링크, 헤딩, 키워드, 폴더, 수정 시간, URL 노이즈 필터링, BM25 스타일 용어 점수를 사용합니다.
+
+로컬 저장 위치:
+
+```text
+.codexian/memory/index.json
+```
+
+명령 팔레트:
+
+- `Codexian: 메모리 맵 빌드`
+- `Codexian: 현재 노트 관련 노트 찾기`
+
+## 시각 자료 생성
+
+Codexian은 현재 노트에서 PNG 또는 SVG 시각 자료를 생성하고 노트 상단에 삽입할 수 있습니다.
+
+지원 형식:
+
+- 인포그래픽
+- 포스터
+- 카툰 / 스토리보드
+- 컨셉 아트
+- 다이어그램 일러스트
+- 유튜브 썸네일
+- 프로필 / 아바타
+- 제품 마케팅
+- 이커머스 히어로 이미지
+- UI / 앱 목업
+
+사용 흐름:
+
+1. 노트를 엽니다.
+2. Codexian 사이드바의 이미지 버튼을 누릅니다.
+3. `Codex 이미지 생성으로 PNG` 또는 `Codex 코드 생성으로 SVG`를 선택합니다.
+4. 시각 자료 형식을 선택합니다.
+5. Codexian이 노트를 분석해 이미지 프롬프트 초안을 작성합니다.
+6. 프롬프트를 검토하거나 수정합니다.
+7. Codexian이 파일을 생성하고 노트에 삽입합니다.
+
+참고:
+
+- PNG는 Codex CLI 내장 `image_generation`을 사용합니다.
+- SVG는 Codex CLI가 텍스트 안전 SVG 파일을 작성합니다.
+- 생성 파일은 설정의 미디어 폴더에 저장됩니다.
+- YAML frontmatter/properties 아래에 삽입되어 Obsidian 속성을 깨지 않습니다.
+- 한국어 라벨이 깨질 가능성을 줄이도록 프롬프트 작성 단계에 한국어 지시를 포함합니다.
+
+## 설정
+
+Obsidian 설정 -> 커뮤니티 플러그인 -> Codexian에서 설정합니다.
+
+설정 항목:
+
+- **Codex CLI 경로**: 자동 감지가 실패할 때만 직접 지정합니다.
+- **모델**: 사용할 Codex 모델 ID를 지정합니다.
+- **추론 수준**: 낮음, 보통, 높음, 매우 높음 중 선택합니다.
+- **권한 모드**: 검토, 자동, 무제한 중 선택합니다. 처음에는 검토 모드를 권장합니다.
+- **활성 노트 자동 포함**: 현재 열린 Markdown 노트를 모든 Codex 프롬프트에 자동 첨부합니다.
+- **환경 변수**: Obsidian이 `codex`, `npm`, `git`, `omx`를 찾지 못할 때 `PATH` 등을 설정합니다.
+- **미디어 폴더**: 생성된 PNG/SVG 시각 자료 저장 위치입니다.
+- **숙고 출력 폴더**: 숙고 사고 결과 노트 저장 위치입니다.
+
+설치/업데이트 보조 기능:
+
+- **진단 실행**: Obsidian이 `codex`, `npm`, `node`, `git`, `omx`를 찾는지 확인합니다.
+- **Codex + OMX 설치/업데이트**: `@openai/codex`와 `oh-my-codex`를 설치한 뒤 `omx setup`, `omx doctor`를 실행합니다.
+- **Codex CLI 업데이트**: `npm install -g @openai/codex@latest`를 실행합니다.
+- **이미지 생성 활성화**: `codex features enable image_generation`을 실행합니다.
+- **Obsidian Skills 설치/업데이트**: [`kepano/obsidian-skills`](https://github.com/kepano/obsidian-skills)를 `~/.codex/skills`에 설치합니다.
+
+## 노트 컨텍스트 워크플로
+
+- 노트를 열면 Codexian이 자동으로 감지합니다.
+- 핀 아이콘으로 파일을 바꿔도 계속 붙어 있을 노트를 고정합니다.
+- `x`로 특정 노트를 현재 대화 컨텍스트에서 제외합니다.
+- 명령 팔레트에서 `Codexian: 현재 노트를 채팅에 첨부`를 실행하거나 단축키에 연결할 수 있습니다.
+- 일반적으로 질문하면 Codexian이 선택된 노트 컨텍스트를 Codex CLI로 전달합니다.
+
+## 요구사항
+
+- Obsidian 데스크톱
+- Node.js 20 이상
+- Git
+- 설치 및 로그인된 OpenAI Codex CLI
+- PNG 시각 자료 생성을 위한 최신 Codex CLI와 `image_generation` 기능
+- 선택: 고급 OMX 워크플로를 위한 oh-my-codex
+
+권장 CLI 설정:
 
 ```bash
 npm install -g @openai/codex oh-my-codex
@@ -109,139 +194,44 @@ omx setup
 omx doctor
 ```
 
-Platform notes:
+플랫폼 참고:
 
-- **macOS**: Codexian auto-detects Homebrew, npm, and NVM Codex paths such as `/opt/homebrew/bin/codex`.
-- **Windows**: Codexian auto-detects npm paths such as `%APPDATA%\npm\codex.cmd`. When this `.cmd` wrapper causes Node spawn issues, Codexian runs the underlying `@openai/codex/bin/codex.js` entrypoint through `node`.
-- **Windows PowerShell**: Recommended for manual setup commands.
-- **Windows WSL**: Still a practical fallback for advanced OMX/team workflows if native Windows terminal tooling is unstable.
+- **macOS**: Homebrew, npm, NVM Codex 경로를 자동 감지합니다.
+- **Windows**: `%APPDATA%\npm\codex.cmd` 같은 npm 경로를 자동 감지합니다. `.cmd` 래퍼가 Node spawn 문제를 만들면 내부적으로 `codex.js` 엔트리포인트를 `node`로 실행합니다.
+- **Windows PowerShell**: 수동 설정 명령에 권장됩니다.
+- **Windows WSL**: 네이티브 터미널 도구가 불안정할 때 고급 OMX/team 워크플로의 실용적인 대안입니다.
 
-## Installing With BRAT
+## BRAT 설치
 
-Codexian supports BRAT installation from GitHub releases.
+Codexian은 GitHub 릴리스 기반 BRAT 설치를 지원합니다.
 
-1. Install **Obsidian42 - BRAT** from Obsidian Community Plugins.
-2. Open BRAT settings.
-3. Click **Add Beta Plugin**.
-4. Paste this repository URL:
+1. Obsidian 커뮤니티 플러그인에서 **Obsidian42 - BRAT**을 설치합니다.
+2. BRAT 설정을 엽니다.
+3. **Add Beta Plugin**을 누릅니다.
+4. 저장소 URL을 붙여넣습니다.
 
 ```text
 https://github.com/reallygood83/codexian
 ```
 
-5. Enable **Codexian** in Obsidian Community Plugins.
+5. Obsidian 커뮤니티 플러그인에서 **Codexian**을 활성화합니다.
 
-Each release includes the files BRAT needs:
+각 릴리스에는 BRAT에 필요한 파일이 포함됩니다.
 
 - `main.js`
 - `manifest.json`
 - `styles.css`
 
-If BRAT does not update immediately, use BRAT's plugin update command or restart Obsidian.
+BRAT이 즉시 업데이트하지 않으면 BRAT의 플러그인 업데이트 명령을 실행하거나 Obsidian을 다시 시작하세요.
 
-## Note Context Workflow
-
-Codexian is designed to make Obsidian notes feel native inside Codex CLI:
-
-- Open a note and Codexian detects it automatically.
-- Use the pin icon to keep a note attached while switching files.
-- Use `x` to exclude a note when you want a note-independent conversation.
-- Run `Codexian: Attach current note to chat` from Obsidian commands or bind it to a hotkey.
-- Ask Codex normally; Codexian sends the selected note context through Codex CLI.
-
-## Memory Map
-
-Memory Map is a local, API-free way to find relevant notes in your vault.
-
-User flow:
-
-1. Click **Build Memory Map** once to index the vault locally.
-2. Open any note.
-3. Click **Find Context**.
-4. Codexian recommends related notes with clear reasons.
-5. Add useful notes to Codexian context with `+`.
-
-Memory Map uses note titles, tags, links, backlinks, headings, keywords, folders, modified times, URL-noise filtering, and BM25-style term scoring.
-
-Memory Map data is saved locally in the vault:
-
-```text
-.codexian/memory/index.json
-```
-
-Available commands:
-
-- `Codexian: Build Memory Map`
-- `Codexian: Find related notes for current note`
-
-## Sukgo Thinking
-
-Sukgo Thinking brings a native subset of [`sukgo`](https://github.com/reallygood83/sukgo)-style decision and reasoning frameworks into Codexian.
-
-It does not launch the interactive Python `sukgo` CLI. Instead, Codexian uses its existing Codex CLI bridge, active note context, pinned notes, and Memory Map related notes to generate an Obsidian Markdown analysis note.
-
-Included frameworks:
-
-- Steel-manning
-- Devil's Advocate
-- Pre-mortem
-- 6 Hats
-- Inversion
-- 5 Whys
-- Decision Matrix
-- First Principles
-- OODA Loop
-- Toulmin Model
-
-User flow:
-
-1. Open a note, or type an explicit topic in the Sukgo panel.
-2. Choose a thinking framework.
-3. Click **Run**.
-4. Codexian sends the active note, selected text, pinned notes, and related Memory Map notes to Codex.
-5. The result is saved as a Markdown note in the configured Sukgo output folder.
-
-Default output folder:
-
-```text
-Sukgo/
-```
-
-Available commands:
-
-- `Codexian: Run Sukgo thinking tool`
-- `Codexian: Sukgo: Steel-manning`
-- `Codexian: Sukgo: Devil's Advocate`
-- `Codexian: Sukgo: Pre-mortem`
-- `Codexian: Sukgo: 6 Hats`
-- `Codexian: Sukgo: Inversion`
-- `Codexian: Sukgo: 5 Whys`
-- `Codexian: Sukgo: Decision Matrix`
-- `Codexian: Sukgo: First Principles`
-- `Codexian: Sukgo: OODA Loop`
-- `Codexian: Sukgo: Toulmin Model`
-
-## Configuration
-
-Open Obsidian Settings → Community plugins → Codexian.
-
-- Set `Codex CLI path` only if auto-detection fails.
-- Add `PATH` under environment variables only if Obsidian cannot find `codex`, `npm`, `git`, or `omx`.
-- On Windows, `Codex CLI path` may point to `codex.cmd`; Codexian will internally prefer the matching `codex.js` entrypoint when available.
-- On macOS/Linux, Codexian keeps the normal executable path and does not use the Windows `.cmd` workaround.
-- Choose your Codex model and reasoning effort.
-- Use `Review` permission mode until you trust the current vault workflow.
-- Configure the media folder for generated visual assets.
-- Configure the Sukgo output folder for generated structured thinking notes.
-
-## Development
+## 개발
 
 ```bash
 npm install
 npm run build
 ```
 
-Manual install for local development:
+로컬 개발 설치 위치:
 
 ```text
 <vault>/.obsidian/plugins/codexian/
@@ -250,37 +240,37 @@ Manual install for local development:
   styles.css
 ```
 
-Then enable **Codexian** in Obsidian settings.
+그 뒤 Obsidian 설정에서 **Codexian**을 활성화합니다.
 
-## Release Workflow
+## 릴리스 워크플로
 
-This repository includes a GitHub Actions workflow that builds and uploads BRAT assets when a tag matching the manifest version is pushed.
+이 저장소에는 manifest 버전과 일치하는 태그가 push될 때 BRAT 산출물을 빌드하고 업로드하는 GitHub Actions 워크플로가 포함되어 있습니다.
 
-Example:
+예:
 
 ```bash
-git tag 0.2.15
-git push origin 0.2.15
+git tag 0.2.18
+git push origin 0.2.18
 ```
 
-## Security Notes
+## 보안 참고
 
-- Review mode is the safest default.
-- Auto mode maps to Codex full-auto behavior.
-- Yolo mode maps to Codex's dangerous bypass mode and should only be used in trusted, backed-up vaults.
-- One-click installers show command previews and log setup output.
-- Visual generation edits the current note only after the asset file exists.
+- 기본값으로는 검토 모드가 가장 안전합니다.
+- 자동 모드는 Codex full-auto 동작에 대응합니다.
+- 무제한 모드는 승인과 샌드박스를 우회하므로 신뢰할 수 있고 백업된 볼트에서만 사용하세요.
+- 원클릭 설치 도구는 명령 미리보기와 실행 로그를 보여줍니다.
+- 시각 자료 생성은 파일이 실제로 생성된 뒤에만 현재 노트를 수정합니다.
 
-## Project Status
+## 프로젝트 상태
 
-Codexian is in active MVP development. Current focus areas:
+Codexian은 MVP 단계에서 활발히 개발 중입니다. 현재 초점:
 
-- Better Codex CLI parity with interactive slash commands.
-- More robust visual generation workflows.
-- Optional embedding-based Memory Map ranking.
-- Deeper tool-call rendering and diff previews.
-- Long-term conversation persistence.
+- Codex CLI 슬래시 명령과의 더 나은 호환성
+- 시각 자료 생성 워크플로 안정화
+- 메모리 맵 랭킹 개선
+- 도구 호출과 diff 미리보기 렌더링 개선
+- 장기 대화 지속성
 
-## Credits
+## 크레딧
 
-Created by [배움의 달인](https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v) / [@reallygood83](https://x.com/reallygood83).
+[배움의 달인](https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v) / [@reallygood83](https://x.com/reallygood83)이 만들었습니다.

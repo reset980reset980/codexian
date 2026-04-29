@@ -38,25 +38,25 @@ export default class CodexianPlugin extends Plugin {
 
     this.registerView(VIEW_TYPE_CODEXIAN, (leaf) => new CodexianView(leaf, this));
 
-    this.addRibbonIcon('sparkles', 'Open Codexian', () => {
+    this.addRibbonIcon('sparkles', 'Codexian 열기', () => {
       void this.activateView();
     });
 
     this.addCommand({
       id: 'open-codexian',
-      name: 'Open Codexian',
+      name: 'Codexian 열기',
       callback: () => void this.activateView(),
     });
 
     this.addCommand({
       id: 'generate-visual-from-note',
-      name: 'Generate visual asset from active note',
+      name: '활성 노트로 시각 자료 생성',
       callback: () => void this.generateImageFromActiveNote(),
     });
 
     this.addCommand({
       id: 'attach-current-note',
-      name: 'Attach current note to chat',
+      name: '현재 노트를 채팅에 첨부',
       checkCallback: (checking: boolean) => {
         const activeFile = this.getActiveMarkdownFile();
         if (!activeFile) return false;
@@ -69,13 +69,13 @@ export default class CodexianPlugin extends Plugin {
 
     this.addCommand({
       id: 'build-memory-map',
-      name: 'Build Memory Map',
+      name: '메모리 맵 빌드',
       callback: () => void this.buildMemoryMap(),
     });
 
     this.addCommand({
       id: 'find-related-notes',
-      name: 'Find related notes for current note',
+      name: '현재 노트 관련 노트 찾기',
       checkCallback: (checking: boolean) => {
         const activeFile = this.getActiveMarkdownFile();
         if (!activeFile) return false;
@@ -88,14 +88,14 @@ export default class CodexianPlugin extends Plugin {
 
     this.addCommand({
       id: 'run-sukgo-thinking-tool',
-      name: 'Run Sukgo thinking tool',
+      name: '숙고 사고 도구 실행',
       callback: () => void this.runSukgoTool('steelman'),
     });
 
     for (const tool of SUKGO_TOOLS) {
       this.addCommand({
         id: `run-sukgo-${tool.id}`,
-        name: `Sukgo: ${tool.name}`,
+        name: `숙고: ${tool.name}`,
         callback: () => void this.runSukgoTool(tool.id),
       });
     }
@@ -232,25 +232,25 @@ export default class CodexianPlugin extends Plugin {
   async attachCurrentNoteToChat(): Promise<void> {
     const activeFile = this.getActiveMarkdownFile();
     if (!activeFile) {
-      new Notice('Open a markdown note before attaching it.');
+      new Notice('첨부할 마크다운 노트를 먼저 열어 주세요.');
       return;
     }
 
     await this.pinNote(activeFile.path.replace(/\\/g, '/'));
     await this.activateView();
     this.refreshOpenViews();
-    new Notice(`Attached: ${activeFile.name}`);
+    new Notice(`첨부됨: ${activeFile.name}`);
   }
 
   async buildMemoryMap(): Promise<void> {
-    new Notice('Building Codexian Memory Map...');
+    new Notice('Codexian 메모리 맵을 빌드하는 중...');
     try {
       const index = await this.memoryMap.build();
       this.refreshOpenViews();
-      new Notice(`Memory Map ready: ${index.entries.length} notes indexed.`);
+      new Notice(`메모리 맵 준비 완료: 노트 ${index.entries.length}개 색인됨.`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      new Notice(`Memory Map failed: ${message}`);
+      new Notice(`메모리 맵 빌드 실패: ${message}`);
     }
   }
 
@@ -261,18 +261,18 @@ export default class CodexianPlugin extends Plugin {
   async findRelatedNotes(limit = 8): Promise<MemoryMapResult[]> {
     const activeFile = this.getActiveMarkdownFile();
     if (!activeFile) {
-      new Notice('Open a markdown note before finding related notes.');
+      new Notice('관련 노트를 찾을 마크다운 노트를 먼저 열어 주세요.');
       return [];
     }
 
     try {
       const results = await this.memoryMap.findRelated(activeFile, limit);
       this.refreshOpenViews();
-      if (results.length === 0) new Notice('No related notes found.');
+      if (results.length === 0) new Notice('관련 노트를 찾지 못했습니다.');
       return results;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      new Notice(`Find Context failed: ${message}`);
+      new Notice(`관련 컨텍스트 찾기 실패: ${message}`);
       return [];
     }
   }
@@ -280,18 +280,18 @@ export default class CodexianPlugin extends Plugin {
   async runSukgoTool(toolId: string, topic = ''): Promise<string | null> {
     const tool = getSukgoTool(toolId);
     if (!tool) {
-      new Notice(`Unknown Sukgo tool: ${toolId}`);
+      new Notice(`알 수 없는 숙고 도구입니다: ${toolId}`);
       return null;
     }
 
     const activeFile = this.getActiveMarkdownFile();
     const context = await this.getActiveNoteContext();
     if (!activeFile && !topic.trim()) {
-      new Notice('Open a markdown note or enter a Sukgo topic first.');
+      new Notice('마크다운 노트를 열거나 숙고 주제를 입력해 주세요.');
       return null;
     }
 
-    new Notice(`Running Sukgo: ${tool.name}...`);
+    new Notice(`숙고 실행 중: ${tool.name}...`);
     try {
       const relatedNotes = activeFile ? await this.getRelatedNoteContents(activeFile, 4) : [];
       const result = await runSukgoAnalysis({
@@ -314,12 +314,12 @@ export default class CodexianPlugin extends Plugin {
         await this.app.workspace.getLeaf(false).openFile(savedFile as TFile);
       }
       this.refreshOpenViews();
-      new Notice(`Sukgo note saved: ${result.path}`);
+      new Notice(`숙고 노트 저장됨: ${result.path}`);
       return result.path;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error('[Codexian Sukgo] Run failed:', error);
-      new Notice(`Sukgo failed: ${message}`);
+      new Notice(`숙고 실행 실패: ${message}`);
       return null;
     }
   }
@@ -389,7 +389,7 @@ export default class CodexianPlugin extends Plugin {
     const activeFile = this.getActiveMarkdownFile();
     const context = await this.getActiveNoteContext();
     if (!context || !activeFile) {
-      new Notice('Open a markdown note before generating an image.');
+      new Notice('이미지를 생성할 마크다운 노트를 먼저 열어 주세요.');
       return;
     }
 
@@ -398,14 +398,14 @@ export default class CodexianPlugin extends Plugin {
 
     const progressModal = new VisualGenerationProgressModal(this.app);
     progressModal.open();
-    progressModal.addStep(`Source note: ${activeFile.path}`);
-    progressModal.addStep(`Visual format: ${input.mode}`);
-    progressModal.addStep(`Output type: ${input.outputType.toUpperCase()}`);
+    progressModal.addStep(`원본 노트: ${activeFile.path}`);
+    progressModal.addStep(`시각 자료 형식: ${input.mode}`);
+    progressModal.addStep(`출력 유형: ${input.outputType.toUpperCase()}`);
 
     let activeProgressModal = progressModal;
     try {
       const noteContent = context.content || await this.app.vault.read(activeFile);
-      progressModal.addStep('Analyzing note and drafting image prompt...');
+      progressModal.addStep('노트를 분석하고 이미지 프롬프트를 작성하는 중...');
       const draftedPrompt = await draftVisualPrompt({
         app: this.app,
         agent: this.agent,
@@ -435,7 +435,7 @@ export default class CodexianPlugin extends Plugin {
       const generationProgressModal = new VisualGenerationProgressModal(this.app);
       activeProgressModal = generationProgressModal;
       generationProgressModal.open();
-      generationProgressModal.addStep(`Generating ${input.outputType.toUpperCase()} with reviewed prompt...`);
+      generationProgressModal.addStep(`검토한 프롬프트로 ${input.outputType.toUpperCase()} 생성 중...`);
       const generated = await generateVisualAsset({
         app: this.app,
         agent: this.agent,
@@ -451,13 +451,13 @@ export default class CodexianPlugin extends Plugin {
         onProgress: (message) => generationProgressModal.addStep(message),
       });
 
-      generationProgressModal.finish(`Done. Embedded ${generated.path}`, 'success');
-      new Notice(`Visual embedded: ${generated.path}`);
+      generationProgressModal.finish(`완료. ${generated.path}에 삽입했습니다.`, 'success');
+      new Notice(`시각 자료 삽입됨: ${generated.path}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      activeProgressModal.finish(`Error: ${message}`, 'error');
+      activeProgressModal.finish(`오류: ${message}`, 'error');
       console.error('[Codexian visual] Visual generation failed:', error);
-      new Notice(`Visual generation failed: ${message}`);
+      new Notice(`시각 자료 생성 실패: ${message}`);
     }
   }
 }
