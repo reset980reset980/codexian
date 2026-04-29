@@ -1,6 +1,6 @@
 # Codexian
 
-Run OpenAI Codex CLI inside Obsidian, with note context, visual generation, Memory Map search, and one-click setup helpers.
+Run OpenAI Codex CLI inside Obsidian, with note context, Sukgo thinking tools, visual generation, Memory Map search, and one-click setup helpers.
 
 <p align="center">
   <a href="https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v">
@@ -31,6 +31,7 @@ https://github.com/reallygood83/codexian
 - **Automatic note context**: The active note, selected text, and pinned notes can be sent to Codex automatically.
 - **Pinned and dismissible note chips**: Pin important notes with `+` or remove noisy notes with `x`.
 - **Memory Map**: Build a local vault index, find related notes, and add them to context with clear hover reasons.
+- **Sukgo Thinking**: Run structured thinking frameworks such as Steel-manning, Pre-mortem, 6 Hats, 5 Whys, and Decision Matrix from the sidebar.
 - **Visible Codex work timeline**: Codex CLI progress lines are shown as a step-by-step timeline while the final answer is being generated.
 - **Slash command menu**: Type `/` to open a scrollable Codex-style command menu.
 - **Model selector**: Includes `gpt-5.5`, `gpt-5.4`, and fallback Codex model options. Settings still allow manual model IDs.
@@ -173,6 +174,53 @@ Available commands:
 - `Codexian: Build Memory Map`
 - `Codexian: Find related notes for current note`
 
+## Sukgo Thinking
+
+Sukgo Thinking brings a native subset of [`sukgo`](https://github.com/reallygood83/sukgo)-style decision and reasoning frameworks into Codexian.
+
+It does not launch the interactive Python `sukgo` CLI. Instead, Codexian uses its existing Codex CLI bridge, active note context, pinned notes, and Memory Map related notes to generate an Obsidian Markdown analysis note.
+
+Included frameworks:
+
+- Steel-manning
+- Devil's Advocate
+- Pre-mortem
+- 6 Hats
+- Inversion
+- 5 Whys
+- Decision Matrix
+- First Principles
+- OODA Loop
+- Toulmin Model
+
+User flow:
+
+1. Open a note, or type an explicit topic in the Sukgo panel.
+2. Choose a thinking framework.
+3. Click **Run**.
+4. Codexian sends the active note, selected text, pinned notes, and related Memory Map notes to Codex.
+5. The result is saved as a Markdown note in the configured Sukgo output folder.
+
+Default output folder:
+
+```text
+Sukgo/
+```
+
+Available commands:
+
+- `Codexian: Run Sukgo thinking tool`
+- `Codexian: Sukgo: Steel-manning`
+- `Codexian: Sukgo: Devil's Advocate`
+- `Codexian: Sukgo: Pre-mortem`
+- `Codexian: Sukgo: 6 Hats`
+- `Codexian: Sukgo: Inversion`
+- `Codexian: Sukgo: 5 Whys`
+- `Codexian: Sukgo: Decision Matrix`
+- `Codexian: Sukgo: First Principles`
+- `Codexian: Sukgo: OODA Loop`
+- `Codexian: Sukgo: Toulmin Model`
+
 ## Configuration
 
 Open Obsidian Settings → Community plugins → Codexian.
@@ -184,6 +232,7 @@ Open Obsidian Settings → Community plugins → Codexian.
 - Choose your Codex model and reasoning effort.
 - Use `Review` permission mode until you trust the current vault workflow.
 - Configure the media folder for generated visual assets.
+- Configure the Sukgo output folder for generated structured thinking notes.
 
 ## Development
 

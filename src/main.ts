@@ -6,6 +6,8 @@ import { draftVisualPrompt, generateVisualAsset } from './core/images/VisualAsse
 import { buildImagePrompt } from './core/images/ImagePromptBuilder';
 import { MemoryMapService } from './core/memory/MemoryMapService';
 import { buildProcessEnv } from './core/settings/env';
+import { runSukgoAnalysis } from './core/sukgo/SukgoService';
+import { getSukgoTool, SUKGO_TOOLS } from './core/sukgo/SukgoTools';
 import type { CodexianSettings, MemoryMapResult } from './core/types';
 import { DEFAULT_SETTINGS } from './core/types';
 import { CodexianView, VIEW_TYPE_CODEXIAN } from './ui/CodexianView';
@@ -83,6 +85,20 @@ export default class CodexianPlugin extends Plugin {
         return true;
       },
     });
+
+    this.addCommand({
+      id: 'run-sukgo-thinking-tool',
+      name: 'Run Sukgo thinking tool',
+      callback: () => void this.runSukgoTool('steelman'),
+    });
+
+    for (const tool of SUKGO_TOOLS) {
+      this.addCommand({
+        id: `run-sukgo-${tool.id}`,
+        name: `Sukgo: ${tool.name}`,
+        callback: () => void this.runSukgoTool(tool.id),
+      });
+    }
 
     this.addSettingTab(new CodexianSettingsTab(this));
   }
@@ -257,6 +273,78 @@ export default class CodexianPlugin extends Plugin {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       new Notice(`Find Context failed: ${message}`);
+      return [];
+    }
+  }
+
+  async runSukgoTool(toolId: string, topic = ''): Promise<string | null> {
+    const tool = getSukgoTool(toolId);
+    if (!tool) {
+      new Notice(`Unknown Sukgo tool: ${toolId}`);
+      return null;
+    }
+
+    const activeFile = this.getActiveMarkdownFile();
+    const context = await this.getActiveNoteContext();
+    if (!activeFile && !topic.trim()) {
+      new Notice('Open a markdown note or enter a Sukgo topic first.');
+      return null;
+    }
+
+    new Notice(`Running Sukgo: ${tool.name}...`);
+    try {
+      const relatedNotes = activeFile ? await this.getRelatedNoteContents(activeFile, 4) : [];
+      const result = await runSukgoAnalysis({
+        app: this.app,
+        agent: this.agent,
+        vaultPath: this.getVaultPath(),
+        outputFolder: this.settings.sukgoFolder,
+        tool,
+        topic,
+        activeFile,
+        activeNoteContent: context?.content || '',
+        selectedText: context?.selection,
+        pinnedNotes: context?.pinnedNotes || [],
+        relatedNotes,
+        onProgress: (message) => console.log(`[Codexian Sukgo] ${message}`),
+      });
+
+      const savedFile = this.app.vault.getAbstractFileByPath(result.path);
+      if (savedFile && 'extension' in savedFile) {
+        await this.app.workspace.getLeaf(false).openFile(savedFile as TFile);
+      }
+      this.refreshOpenViews();
+      new Notice(`Sukgo note saved: ${result.path}`);
+      return result.path;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('[Codexian Sukgo] Run failed:', error);
+      new Notice(`Sukgo failed: ${message}`);
+      return null;
+    }
+  }
+
+  private async getRelatedNoteContents(
+    activeFile: TFile,
+    limit: number,
+  ): Promise<Array<MemoryMapResult & { content?: string }>> {
+    try {
+      const related = await this.memoryMap.findRelated(activeFile, limit);
+      const results: Array<MemoryMapResult & { content?: string }> = [];
+      for (const result of related) {
+        const file = this.app.vault.getAbstractFileByPath(result.path);
+        if (!file || !('extension' in file) || this.isNoteExcluded(result.path)) {
+          results.push(result);
+          continue;
+        }
+        try {
+          results.push({ ...result, content: await this.app.vault.cachedRead(file as TFile) });
+        } catch {
+          results.push(result);
+        }
+      }
+      return results;
+    } catch {
       return [];
     }
   }

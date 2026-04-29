@@ -136,6 +136,20 @@ export class CodexianSettingsTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    const sukgoCard = containerEl.createDiv({ cls: 'codexian-settings-card' });
+    sukgoCard.createEl('h3', { text: 'Sukgo Thinking' });
+    sukgoCard.createEl('p', {
+      text: 'Save structured thinking notes generated from the current note and Memory Map context.',
+    });
+    new Setting(sukgoCard)
+      .setName('Sukgo output folder')
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoFolder = value.trim() || 'Sukgo';
+          await this.plugin.saveSettings();
+        }));
+
     const omxCard = containerEl.createDiv({ cls: 'codexian-settings-card' });
     omxCard.createEl('h3', { text: 'oh-my-codex' });
     omxCard.createEl('p', { text: 'Install or update Codex CLI and OMX. Review the command preview before running.' });

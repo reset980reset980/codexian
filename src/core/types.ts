@@ -49,6 +49,7 @@ export interface CodexianSettings {
   excludedNotePaths: string[];
   environmentVariables: string;
   mediaFolder: string;
+  sukgoFolder: string;
   omx: {
     enabled: boolean;
     lastDoctorStatus: 'unknown' | 'pass' | 'warn' | 'fail';
@@ -100,6 +101,7 @@ export const DEFAULT_SETTINGS: CodexianSettings = {
   excludedNotePaths: [],
   environmentVariables: '',
   mediaFolder: 'attachments/codexian',
+  sukgoFolder: 'Sukgo',
   omx: {
     enabled: false,
     lastDoctorStatus: 'unknown',

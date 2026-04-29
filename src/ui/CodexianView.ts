@@ -1,6 +1,7 @@
 import { ItemView, MarkdownRenderer, Notice, setIcon, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 import type CodexianPlugin from '../main';
+import { SUKGO_TOOLS } from '../core/sukgo/SukgoTools';
 import type { ConversationMessage, MemoryMapResult, PermissionMode, ReasoningEffort } from '../core/types';
 
 export const VIEW_TYPE_CODEXIAN = 'codexian-view';
@@ -36,6 +37,7 @@ export class CodexianView extends ItemView {
   private messagesEl: HTMLElement | null = null;
   private inputEl: HTMLTextAreaElement | null = null;
   private memoryMapEl: HTMLElement | null = null;
+  private sukgoEl: HTMLElement | null = null;
   private fileIndicatorEl: HTMLElement | null = null;
   private selectionIndicatorEl: HTMLElement | null = null;
   private slashDropdownEl: HTMLElement | null = null;
@@ -45,6 +47,7 @@ export class CodexianView extends ItemView {
   private hiddenRelatedPaths = new Set<string>();
   private memoryMapRenderToken = 0;
   private isMemoryMapExpanded = true;
+  private selectedSukgoToolId = SUKGO_TOOLS[0]?.id || 'steelman';
   private isRunning = false;
   private selectedSlashCommandIndex = 0;
 
@@ -85,9 +88,11 @@ export class CodexianView extends ItemView {
       this.relatedNotes = [];
       this.hiddenRelatedPaths.clear();
       this.renderMemoryMapPanel();
+      this.renderSukgoPanel();
       this.renderFileChips();
     }));
     void this.renderMemoryMapPanel();
+    this.renderSukgoPanel();
     this.renderFileChips();
   }
 
@@ -97,6 +102,7 @@ export class CodexianView extends ItemView {
 
   refreshContextChips(): void {
     void this.renderMemoryMapPanel();
+    this.renderSukgoPanel();
     this.renderFileChips();
   }
 
@@ -135,6 +141,9 @@ export class CodexianView extends ItemView {
     this.selectionIndicatorEl.style.display = 'none';
 
     this.memoryMapEl = inputWrapper.createDiv({ cls: 'oc-memory-map-panel' });
+
+    this.sukgoEl = inputWrapper.createDiv({ cls: 'oc-sukgo-panel' });
+    this.renderSukgoPanel();
 
     this.fileIndicatorEl = inputWrapper.createDiv({ cls: 'oc-file-indicator' });
 
@@ -351,6 +360,51 @@ export class CodexianView extends ItemView {
       event.stopPropagation();
       this.hiddenRelatedPaths.add(result.path);
       await this.renderMemoryMapPanel();
+    });
+  }
+
+  private renderSukgoPanel(): void {
+    if (!this.sukgoEl) return;
+    this.sukgoEl.empty();
+
+    const header = this.sukgoEl.createDiv({ cls: 'oc-sukgo-header' });
+    const title = header.createDiv({ cls: 'oc-sukgo-title' });
+    setIcon(title.createSpan({ cls: 'oc-sukgo-icon' }), 'brain');
+    title.createSpan({ text: 'Sukgo Thinking' });
+
+    const controls = this.sukgoEl.createDiv({ cls: 'oc-sukgo-controls' });
+    const select = controls.createEl('select', { cls: 'oc-sukgo-select' });
+    for (const tool of SUKGO_TOOLS) {
+      const option = select.createEl('option', { text: tool.name, value: tool.id });
+      option.selected = tool.id === this.selectedSukgoToolId;
+    }
+    select.addEventListener('change', () => {
+      this.selectedSukgoToolId = select.value;
+      this.renderSukgoPanel();
+    });
+
+    const runBtn = controls.createEl('button', { cls: 'oc-memory-map-btn oc-memory-map-primary', text: 'Run' });
+    const topicInput = this.sukgoEl.createEl('input', {
+      cls: 'oc-sukgo-topic',
+      attr: {
+        type: 'text',
+        placeholder: 'Optional topic. Empty uses current note.',
+      },
+    });
+
+    const selected = SUKGO_TOOLS.find((tool) => tool.id === this.selectedSukgoToolId);
+    this.sukgoEl.createDiv({
+      cls: 'oc-sukgo-hint',
+      text: selected?.shortDescription || 'Run a structured thinking framework on the current note.',
+    });
+
+    runBtn.addEventListener('click', async () => {
+      runBtn.setText('Running...');
+      runBtn.disabled = true;
+      const savedPath = await this.plugin.runSukgoTool(this.selectedSukgoToolId, topicInput.value);
+      runBtn.disabled = false;
+      runBtn.setText(savedPath ? 'Saved' : 'Run');
+      window.setTimeout(() => runBtn.setText('Run'), 1600);
     });
   }
 
