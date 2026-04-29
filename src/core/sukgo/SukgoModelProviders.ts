@@ -72,7 +72,7 @@ class OpenAiCompatibleProvider implements ModelProvider {
     const config = this.settings.sukgoProviderConfig;
     const env = buildProcessEnv(this.settings.environmentVariables);
     const apiKeyEnv = this.id === 'openrouter' ? config.openRouterApiKeyEnv : config.zAiApiKeyEnv;
-    const baseUrl = this.id === 'openrouter' ? config.openRouterBaseUrl : config.zAiBaseUrl;
+    const baseUrl = this.id === 'openrouter' ? config.openRouterBaseUrl : resolveChatCompletionsUrl(config.zAiBaseUrl);
     const apiKey = env[apiKeyEnv];
     const model = request.model || this.settings.sukgoProviderModels[this.id] || '';
     if (!apiKey) {
@@ -112,6 +112,12 @@ class OpenAiCompatibleProvider implements ModelProvider {
     }
     yield { type: 'done' };
   }
+}
+
+function resolveChatCompletionsUrl(baseUrl: string): string {
+  const trimmed = baseUrl.trim().replace(/\/+$/g, '');
+  if (!trimmed) return '';
+  return trimmed.endsWith('/chat/completions') ? trimmed : `${trimmed}/chat/completions`;
 }
 
 class GeminiProvider implements ModelProvider {

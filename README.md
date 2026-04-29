@@ -83,6 +83,7 @@ Provider:
 - 기본 provider는 Codex입니다.
 - 설정에서 Claude CLI, z.ai, Gemini, OpenRouter, Ollama를 선택할 수 있습니다.
 - API 기반 provider는 환경 변수 영역에 키를 넣고, 설정에서 키 이름과 모델/엔드포인트를 지정합니다.
+- z.ai 기본값은 OpenClaw의 built-in provider와 같은 `glm-4.7` 및 `https://api.z.ai/api/coding/paas/v4`를 사용합니다.
 
 기본 출력 폴더:
 

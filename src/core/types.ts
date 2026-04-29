@@ -155,7 +155,7 @@ export const DEFAULT_SETTINGS: CodexianSettings = {
   sukgoProviderModels: {
     codex: '',
     claude: '',
-    zai: 'glm-5.1',
+    zai: 'glm-4.7',
     gemini: 'gemini-2.5-pro',
     openrouter: '',
     ollama: 'llama3.1',
@@ -163,7 +163,7 @@ export const DEFAULT_SETTINGS: CodexianSettings = {
   sukgoProviderConfig: {
     claudeCliPath: '',
     zAiApiKeyEnv: 'ZAI_API_KEY',
-    zAiBaseUrl: 'https://api.z.ai/api/paas/v4/chat/completions',
+    zAiBaseUrl: 'https://api.z.ai/api/coding/paas/v4',
     geminiApiKeyEnv: 'GEMINI_API_KEY',
     openRouterApiKeyEnv: 'OPENROUTER_API_KEY',
     openRouterBaseUrl: 'https://openrouter.ai/api/v1/chat/completions',

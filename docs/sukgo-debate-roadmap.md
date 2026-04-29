@@ -230,7 +230,7 @@ export interface ModelProvider {
 - 기존 `CodexProvider`를 재사용한다.
 - 역할별 `model`, `reasoningEffort`를 임시 override할 수 있게 한다.
 - Claude CLI provider를 연결한다.
-- z.ai와 OpenRouter는 OpenAI 호환 Chat Completions 경로로 연결한다.
+- z.ai와 OpenRouter는 OpenAI 호환 Chat Completions 경로로 연결한다. z.ai 기본값은 OpenClaw built-in provider와 같은 `glm-4.7` 및 `https://api.z.ai/api/coding/paas/v4`다.
 - Gemini는 `generateContent` API 경로로 연결한다.
 - Ollama는 로컬 `/api/generate` 경로로 연결한다.
 
