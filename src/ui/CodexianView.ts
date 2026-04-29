@@ -1,8 +1,9 @@
 import { ItemView, MarkdownRenderer, Notice, setIcon, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 import type CodexianPlugin from '../main';
+import { SUKGO_DEBATE_PROFILES } from '../core/sukgo/SukgoDebateProfiles';
 import { SUKGO_TOOLS } from '../core/sukgo/SukgoTools';
-import type { ConversationMessage, MemoryMapResult, PermissionMode, ReasoningEffort } from '../core/types';
+import type { ConversationMessage, MemoryMapResult, PermissionMode, ReasoningEffort, SukgoExecutionMode } from '../core/types';
 
 export const VIEW_TYPE_CODEXIAN = 'codexian-view';
 
@@ -55,12 +56,16 @@ export class CodexianView extends ItemView {
   private memoryMapRenderToken = 0;
   private isMemoryMapExpanded = true;
   private selectedSukgoToolId = SUKGO_TOOLS[0]?.id || 'steelman';
+  private selectedSukgoExecutionMode: SukgoExecutionMode = 'single';
+  private selectedSukgoDebateProfileId = SUKGO_DEBATE_PROFILES[0]?.id || 'quick-3';
   private isRunning = false;
   private selectedSlashCommandIndex = 0;
 
   constructor(leaf: WorkspaceLeaf, plugin: CodexianPlugin) {
     super(leaf);
     this.plugin = plugin;
+    this.selectedSukgoExecutionMode = plugin.settings.sukgoExecutionMode;
+    this.selectedSukgoDebateProfileId = plugin.settings.sukgoDebateProfile;
   }
 
   getViewType(): string {
@@ -394,6 +399,40 @@ export class CodexianView extends ItemView {
     });
 
     const runBtn = controls.createEl('button', { cls: 'oc-memory-map-btn oc-memory-map-primary', text: '실행' });
+    const selected = SUKGO_TOOLS.find((tool) => tool.id === this.selectedSukgoToolId);
+    const modeRow = this.sukgoEl.createDiv({ cls: 'oc-sukgo-controls oc-sukgo-secondary-controls' });
+    const modeSelect = modeRow.createEl('select', { cls: 'oc-sukgo-select' });
+    const modeOptions: Array<{ value: SukgoExecutionMode; label: string }> = [
+      { value: 'single', label: '단일 실행' },
+      { value: 'parallel', label: '병렬 토론' },
+      { value: 'auto', label: '자동 선택' },
+    ];
+    for (const mode of modeOptions) {
+      const option = modeSelect.createEl('option', { text: mode.label, value: mode.value });
+      option.selected = mode.value === this.selectedSukgoExecutionMode;
+      if (mode.value === 'parallel' && selected && !selected.supportsParallel) {
+        option.disabled = true;
+      }
+    }
+    if (selected && !selected.supportsParallel && this.selectedSukgoExecutionMode === 'parallel') {
+      this.selectedSukgoExecutionMode = 'single';
+      modeSelect.value = 'single';
+    }
+    modeSelect.addEventListener('change', () => {
+      this.selectedSukgoExecutionMode = modeSelect.value as SukgoExecutionMode;
+      this.renderSukgoPanel();
+    });
+
+    const profileSelect = modeRow.createEl('select', { cls: 'oc-sukgo-select' });
+    for (const profile of SUKGO_DEBATE_PROFILES) {
+      const option = profileSelect.createEl('option', { text: profile.name, value: profile.id });
+      option.selected = profile.id === this.selectedSukgoDebateProfileId;
+    }
+    profileSelect.disabled = selected ? !selected.supportsParallel : false;
+    profileSelect.addEventListener('change', () => {
+      this.selectedSukgoDebateProfileId = profileSelect.value;
+    });
+
     const topicInput = this.sukgoEl.createEl('input', {
       cls: 'oc-sukgo-topic',
       attr: {
@@ -401,17 +440,30 @@ export class CodexianView extends ItemView {
         placeholder: '선택 주제. 비워두면 현재 노트를 사용합니다.',
       },
     });
+    const externalInput = this.sukgoEl.createEl('textarea', {
+      cls: 'oc-sukgo-external',
+      attr: {
+        placeholder: '외부 자료 URL. 여러 줄 입력 가능.',
+        rows: '2',
+      },
+    });
+    externalInput.disabled = !this.plugin.settings.sukgoExternalEvidenceEnabled;
 
-    const selected = SUKGO_TOOLS.find((tool) => tool.id === this.selectedSukgoToolId);
     this.sukgoEl.createDiv({
       cls: 'oc-sukgo-hint',
-      text: selected?.shortDescription || '현재 노트에 구조화된 사고 프레임워크를 실행합니다.',
+      text: selected
+        ? `${selected.shortDescription} 기본: ${selected.defaultExecutionMode === 'parallel' ? '병렬 토론' : '단일 실행'}`
+        : '현재 노트에 구조화된 사고 프레임워크를 실행합니다.',
     });
 
     runBtn.addEventListener('click', async () => {
       runBtn.setText('실행 중...');
       runBtn.disabled = true;
-      const savedPath = await this.plugin.runSukgoTool(this.selectedSukgoToolId, topicInput.value);
+      const savedPath = await this.plugin.runSukgoTool(this.selectedSukgoToolId, topicInput.value, {
+        executionMode: this.selectedSukgoExecutionMode,
+        debateProfileId: this.selectedSukgoDebateProfileId,
+        externalUrls: externalInput.value,
+      });
       runBtn.disabled = false;
       runBtn.setText(savedPath ? '저장됨' : '실행');
       window.setTimeout(() => runBtn.setText('실행'), 1600);

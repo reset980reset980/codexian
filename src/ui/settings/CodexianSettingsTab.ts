@@ -1,7 +1,7 @@
 import { Notice, PluginSettingTab, Setting } from 'obsidian';
 
 import type CodexianPlugin from '../../main';
-import type { PermissionMode, ReasoningEffort } from '../../core/types';
+import type { PermissionMode, ReasoningEffort, SukgoExecutionMode, SukgoExternalEvidenceMode, SukgoProviderId } from '../../core/types';
 import { findCodexCli } from '../../core/codex/CodexCliResolver';
 import { buildProcessEnv } from '../../core/settings/env';
 import {
@@ -14,6 +14,7 @@ import {
   updateCodexCli,
 } from '../../core/installer/OmxInstaller';
 import { probeEnvironment } from '../../core/installer/EnvironmentProbe';
+import { SUKGO_DEBATE_PROFILES } from '../../core/sukgo/SukgoDebateProfiles';
 
 export class CodexianSettingsTab extends PluginSettingTab {
   plugin: CodexianPlugin;
@@ -150,6 +151,142 @@ export class CodexianSettingsTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    new Setting(sukgoCard)
+      .setName('기본 실행 방식')
+      .setDesc('단일 실행은 기존 동작입니다. 자동 선택은 도구별 기본값을 따릅니다.')
+      .addDropdown((dropdown) => dropdown
+        .addOption('single', '단일 실행')
+        .addOption('parallel', '병렬 토론')
+        .addOption('auto', '자동 선택')
+        .setValue(this.plugin.settings.sukgoExecutionMode)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoExecutionMode = value as SukgoExecutionMode;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(sukgoCard)
+      .setName('기본 병렬 토론 프로필')
+      .setDesc('병렬 토론 또는 자동 선택에서 병렬 도구가 선택될 때 사용합니다.')
+      .addDropdown((dropdown) => {
+        for (const profile of SUKGO_DEBATE_PROFILES) {
+          dropdown.addOption(profile.id, profile.name);
+        }
+        dropdown
+          .setValue(this.plugin.settings.sukgoDebateProfile)
+          .onChange(async (value) => {
+            this.plugin.settings.sukgoDebateProfile = value || 'quick-3';
+            await this.plugin.saveSettings();
+          });
+      });
+
+    new Setting(sukgoCard)
+      .setName('숙고 provider')
+      .setDesc('Codex 외 provider는 각 API 키 또는 로컬 런타임 설정이 필요합니다.')
+      .addDropdown((dropdown) => dropdown
+        .addOption('codex', 'Codex')
+        .addOption('claude', 'Claude CLI')
+        .addOption('zai', 'z.ai')
+        .addOption('gemini', 'Gemini')
+        .addOption('openrouter', 'OpenRouter')
+        .addOption('ollama', 'Ollama')
+        .setValue(this.plugin.settings.sukgoDebateProvider)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoDebateProvider = value as SukgoProviderId;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(sukgoCard)
+      .setName('외부 URL 근거 수집')
+      .setDesc('숙고 패널의 URL 입력과 주제 안의 URL을 수집해 근거로 추가합니다.')
+      .addToggle((toggle) => toggle
+        .setValue(this.plugin.settings.sukgoExternalEvidenceEnabled)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoExternalEvidenceEnabled = value;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(sukgoCard)
+      .setName('외부 자료 포함 방식')
+      .addDropdown((dropdown) => dropdown
+        .addOption('summary', '요약 중심')
+        .addOption('excerpt', '원문 일부 포함')
+        .addOption('link-only', '출처 링크만')
+        .setValue(this.plugin.settings.sukgoExternalEvidenceMode)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoExternalEvidenceMode = value as SukgoExternalEvidenceMode;
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(sukgoCard)
+      .setName('외부 자료 최대 글자 수')
+      .addText((text) => text
+        .setValue(String(this.plugin.settings.sukgoExternalEvidenceMaxChars))
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoExternalEvidenceMaxChars = Math.max(500, Number(value) || 6000);
+          await this.plugin.saveSettings();
+        }));
+
+    this.addProviderModelSetting(sukgoCard, 'codex', 'Codex 모델 override');
+    this.addProviderModelSetting(sukgoCard, 'claude', 'Claude 모델');
+    this.addProviderModelSetting(sukgoCard, 'zai', 'z.ai 모델');
+    this.addProviderModelSetting(sukgoCard, 'gemini', 'Gemini 모델');
+    this.addProviderModelSetting(sukgoCard, 'openrouter', 'OpenRouter 모델');
+    this.addProviderModelSetting(sukgoCard, 'ollama', 'Ollama 모델');
+
+    new Setting(sukgoCard)
+      .setName('Claude CLI 경로')
+      .addText((text) => text
+        .setPlaceholder('claude')
+        .setValue(this.plugin.settings.sukgoProviderConfig.claudeCliPath)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.claudeCliPath = value.trim();
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(sukgoCard)
+      .setName('API 키 환경 변수')
+      .setDesc('순서대로 z.ai, Gemini, OpenRouter 환경 변수 이름입니다. 값 자체는 환경 변수 영역에 넣습니다.')
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderConfig.zAiApiKeyEnv)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.zAiApiKeyEnv = value.trim() || 'ZAI_API_KEY';
+          await this.plugin.saveSettings();
+        }))
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderConfig.geminiApiKeyEnv)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.geminiApiKeyEnv = value.trim() || 'GEMINI_API_KEY';
+          await this.plugin.saveSettings();
+        }))
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderConfig.openRouterApiKeyEnv)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.openRouterApiKeyEnv = value.trim() || 'OPENROUTER_API_KEY';
+          await this.plugin.saveSettings();
+        }));
+
+    new Setting(sukgoCard)
+      .setName('Provider 엔드포인트')
+      .setDesc('순서대로 z.ai, OpenRouter, Ollama 엔드포인트입니다.')
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderConfig.zAiBaseUrl)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.zAiBaseUrl = value.trim();
+          await this.plugin.saveSettings();
+        }))
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderConfig.openRouterBaseUrl)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.openRouterBaseUrl = value.trim();
+          await this.plugin.saveSettings();
+        }))
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderConfig.ollamaBaseUrl)
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderConfig.ollamaBaseUrl = value.trim() || 'http://localhost:11434';
+          await this.plugin.saveSettings();
+        }));
+
     const omxCard = containerEl.createDiv({ cls: 'codexian-settings-card' });
     omxCard.createEl('h3', { text: 'oh-my-codex' });
     omxCard.createEl('p', { text: 'Codex CLI와 OMX를 설치하거나 업데이트합니다. 실행 전에 명령 미리보기를 확인하세요.' });
@@ -195,6 +332,17 @@ export class CodexianSettingsTab extends PluginSettingTab {
         .setButtonText('Obsidian Skills 설치/업데이트')
         .setCta()
         .onClick(() => void this.installObsidianSkills()));
+  }
+
+  private addProviderModelSetting(containerEl: HTMLElement, provider: SukgoProviderId, label: string): void {
+    new Setting(containerEl)
+      .setName(label)
+      .addText((text) => text
+        .setValue(this.plugin.settings.sukgoProviderModels[provider] || '')
+        .onChange(async (value) => {
+          this.plugin.settings.sukgoProviderModels[provider] = value.trim();
+          await this.plugin.saveSettings();
+        }));
   }
 
   private async runDiagnostics(): Promise<void> {

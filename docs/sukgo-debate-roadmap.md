@@ -8,7 +8,16 @@
 - 사용자는 하나의 사고 도구를 선택하고 `실행`을 누른다.
 - Codexian은 현재 설정된 Codex 모델과 추론 수준으로 단일 분석을 실행한다.
 - 결과는 `Sukgo/` 기본 폴더에 Markdown 노트로 저장된다.
-- 외부 URL, 유튜브, 블로그, PDF, 논문 링크는 아직 자료로 수집하지 않는다. 현재는 사용자가 입력한 문자열 주제로만 취급될 수 있다.
+- 외부 URL, 유튜브, 블로그, PDF, 논문 링크를 숙고 패널에서 입력하면 외부 근거로 수집한다. 수집 실패는 결과 노트에 오류로 남긴다.
+
+## 진행 상태
+
+- `SukgoTool`에 병렬 지원 여부와 기본 실행 모드 메타데이터를 추가했다.
+- 숙고 패널과 설정 화면에서 `단일 실행`, `병렬 토론`, `자동 선택` 실행 방식을 선택할 수 있다.
+- 기본 병렬 토론 프로필 3개를 추가했다.
+- 병렬 토론은 역할별 provider 실행을 `Promise.allSettled`로 격리하고, 일부 역할이 실패해도 중재 및 노트 저장을 계속한다.
+- provider 인터페이스를 추가하고 Codex, Claude CLI, z.ai, Gemini, OpenRouter, Ollama 실행 경로를 연결했다.
+- 외부 URL 근거 수집은 일반 웹, PDF, arXiv/논문 페이지, YouTube transcript 탐색을 지원한다.
 
 ## 목표
 
@@ -64,7 +73,7 @@ export interface SukgoTool {
 병렬 토론은 `SukgoDebateProfile`로 정의한다. 첫 단계에서는 provider를 `codex`로 제한해도 되지만, 타입은 provider 확장을 막지 않게 둔다.
 
 ```ts
-export type SukgoProviderId = 'codex' | 'claude' | 'zai' | 'openrouter' | 'ollama';
+export type SukgoProviderId = 'codex' | 'claude' | 'zai' | 'gemini' | 'openrouter' | 'ollama';
 
 export interface SukgoDebateRole {
   id: string;
@@ -113,7 +122,7 @@ export interface SukgoDebateProfile {
 단일 실행:
 
 1. 기존 `runSukgoAnalysis` 흐름을 유지한다.
-2. 도구 프롬프트와 컨텍스트를 하나의 Codex 요청으로 실행한다.
+2. 도구 프롬프트와 컨텍스트를 하나의 provider 요청으로 실행한다.
 3. 결과 노트를 저장한다.
 
 병렬 토론:
@@ -194,7 +203,7 @@ export interface EvidenceBundle {
 - 외부 자료 최대 글자 수
 - provider별 설정 영역
 
-첫 단계에서는 Codex provider만 노출한다. Claude/z.ai 등은 provider 인터페이스를 만든 뒤 별도 단계에서 추가한다.
+Codex provider를 기본값으로 노출하고, Claude CLI, z.ai, Gemini, OpenRouter, Ollama를 설정에서 선택할 수 있게 한다.
 
 ## Provider 확장 방향
 
@@ -216,19 +225,16 @@ export interface ModelProvider {
 }
 ```
 
-첫 단계:
+구현:
 
 - 기존 `CodexProvider`를 재사용한다.
 - 역할별 `model`, `reasoningEffort`를 임시 override할 수 있게 한다.
+- Claude CLI provider를 연결한다.
+- z.ai와 OpenRouter는 OpenAI 호환 Chat Completions 경로로 연결한다.
+- Gemini는 `generateContent` API 경로로 연결한다.
+- Ollama는 로컬 `/api/generate` 경로로 연결한다.
 
-후속 단계:
-
-- Claude CLI 또는 API provider
-- z.ai provider
-- OpenRouter provider
-- Ollama/local provider
-
-provider 추가 시 API 키 저장, CLI 경로, 네트워크 실패 처리, 비용 안내를 설정 화면에서 분리해야 한다.
+provider 추가 시 API 키 저장, CLI 경로, 네트워크 실패 처리, 비용 안내는 설정 화면에서 분리한다.
 
 ## 결과 노트 형식
 
@@ -293,7 +299,7 @@ tags:
 - `SukgoDebateProfile`, `SukgoDebateRole` 타입 추가
 - 기본 프로필 2~3개 추가
 - `runSukgoDebate` 서비스 추가
-- `Promise.allSettled`로 역할별 Codex 요청 병렬 실행
+- `Promise.allSettled`로 역할별 provider 요청 병렬 실행
 - 중재자 통합 요청 추가
 - 병렬 결과 Markdown 저장
 

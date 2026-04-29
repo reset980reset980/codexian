@@ -9,7 +9,7 @@ import { findCodexCli } from '../codex/CodexCliResolver';
 
 export class CodexProvider implements AgentProvider {
   private settings: () => CodexianSettings;
-  private currentProcess: ChildProcess | null = null;
+  private currentProcesses = new Set<ChildProcess>();
   private sessionId: string | null = null;
 
   constructor(settings: () => CodexianSettings) {
@@ -46,9 +46,9 @@ export class CodexProvider implements AgentProvider {
       '--cd',
       input.cwd,
       '--model',
-      settings.codexModel,
+      input.model?.trim() || settings.codexModel,
       '--config',
-      `model_reasoning_effort="${settings.reasoningEffort}"`,
+      `model_reasoning_effort="${input.reasoningEffort || settings.reasoningEffort}"`,
     ];
 
     if (settings.permissionMode === 'yolo') {
@@ -65,8 +65,10 @@ export class CodexProvider implements AgentProvider {
   }
 
   cancel(): void {
-    this.currentProcess?.kill();
-    this.currentProcess = null;
+    for (const process of this.currentProcesses) {
+      process.kill();
+    }
+    this.currentProcesses.clear();
   }
 
   resetSession(): void {
@@ -124,7 +126,7 @@ export class CodexProvider implements AgentProvider {
       shell,
       windowsHide: true,
     });
-    this.currentProcess = child;
+    this.currentProcesses.add(child);
     child.stdin?.end(stdin);
 
     const queue: AgentEvent[] = [];
@@ -151,6 +153,7 @@ export class CodexProvider implements AgentProvider {
     });
     child.on('error', (error) => {
       queue.push({ type: 'error', content: error.message });
+      this.currentProcesses.delete(child);
       done = true;
     });
     child.on('close', (code) => {
@@ -184,7 +187,7 @@ export class CodexProvider implements AgentProvider {
     }
 
     this.removeTempFile(outputPath);
-    this.currentProcess = null;
+    this.currentProcesses.delete(child);
   }
 
   private resolveCodexSpawnTarget(codexPath: string, args: string[]): { command: string; args: string[]; shell: boolean } {

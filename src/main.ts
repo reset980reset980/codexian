@@ -6,9 +6,11 @@ import { draftVisualPrompt, generateVisualAsset } from './core/images/VisualAsse
 import { buildImagePrompt } from './core/images/ImagePromptBuilder';
 import { MemoryMapService } from './core/memory/MemoryMapService';
 import { buildProcessEnv } from './core/settings/env';
-import { runSukgoAnalysis } from './core/sukgo/SukgoService';
+import { collectExternalEvidence, extractUrls } from './core/sukgo/ExternalEvidenceService';
+import { getSukgoDebateProfile } from './core/sukgo/SukgoDebateProfiles';
+import { runSukgoAnalysis, runSukgoDebate } from './core/sukgo/SukgoService';
 import { getSukgoTool, SUKGO_TOOLS } from './core/sukgo/SukgoTools';
-import type { CodexianSettings, MemoryMapResult } from './core/types';
+import type { CodexianSettings, MemoryMapResult, SukgoExecutionMode } from './core/types';
 import { DEFAULT_SETTINGS } from './core/types';
 import { CodexianView, VIEW_TYPE_CODEXIAN } from './ui/CodexianView';
 import { ImageGenerationModal } from './ui/modals/ImageGenerationModal';
@@ -22,6 +24,12 @@ interface ActiveNoteContext {
   content: string;
   selection?: string;
   pinnedNotes: Array<{ path: string; content: string }>;
+}
+
+interface RunSukgoOptions {
+  executionMode?: SukgoExecutionMode;
+  debateProfileId?: string;
+  externalUrls?: string;
 }
 
 export default class CodexianPlugin extends Plugin {
@@ -122,6 +130,22 @@ export default class CodexianPlugin extends Plugin {
       blockedCommands: {
         ...DEFAULT_SETTINGS.blockedCommands,
         ...data?.blockedCommands,
+      },
+      sukgoExecutionMode: data?.sukgoExecutionMode || DEFAULT_SETTINGS.sukgoExecutionMode,
+      sukgoDebateProfile: data?.sukgoDebateProfile || DEFAULT_SETTINGS.sukgoDebateProfile,
+      sukgoDebateProvider: data?.sukgoDebateProvider || DEFAULT_SETTINGS.sukgoDebateProvider,
+      sukgoExternalEvidenceEnabled: typeof data?.sukgoExternalEvidenceEnabled === 'boolean'
+        ? data.sukgoExternalEvidenceEnabled
+        : DEFAULT_SETTINGS.sukgoExternalEvidenceEnabled,
+      sukgoExternalEvidenceMode: data?.sukgoExternalEvidenceMode || DEFAULT_SETTINGS.sukgoExternalEvidenceMode,
+      sukgoExternalEvidenceMaxChars: Number(data?.sukgoExternalEvidenceMaxChars) || DEFAULT_SETTINGS.sukgoExternalEvidenceMaxChars,
+      sukgoProviderModels: {
+        ...DEFAULT_SETTINGS.sukgoProviderModels,
+        ...data?.sukgoProviderModels,
+      },
+      sukgoProviderConfig: {
+        ...DEFAULT_SETTINGS.sukgoProviderConfig,
+        ...data?.sukgoProviderConfig,
       },
     };
   }
@@ -277,7 +301,7 @@ export default class CodexianPlugin extends Plugin {
     }
   }
 
-  async runSukgoTool(toolId: string, topic = ''): Promise<string | null> {
+  async runSukgoTool(toolId: string, topic = '', options: RunSukgoOptions = {}): Promise<string | null> {
     const tool = getSukgoTool(toolId);
     if (!tool) {
       new Notice(`알 수 없는 숙고 도구입니다: ${toolId}`);
@@ -291,23 +315,52 @@ export default class CodexianPlugin extends Plugin {
       return null;
     }
 
-    new Notice(`숙고 실행 중: ${tool.name}...`);
+    const requestedMode = options.executionMode || this.settings.sukgoExecutionMode;
+    let executionMode: SukgoExecutionMode = requestedMode === 'auto'
+      ? tool.defaultExecutionMode
+      : requestedMode;
+    if (executionMode === 'parallel' && !tool.supportsParallel) {
+      executionMode = 'single';
+      new Notice(`${tool.name}은 병렬 토론을 지원하지 않아 단일 실행으로 진행합니다.`);
+    }
+
+    const profile = getSukgoDebateProfile(options.debateProfileId || this.settings.sukgoDebateProfile);
+    new Notice(executionMode === 'parallel'
+      ? `숙고 토론 실행 중: ${tool.name} / ${profile.name}...`
+      : `숙고 실행 중: ${tool.name}...`);
     try {
       const relatedNotes = activeFile ? await this.getRelatedNoteContents(activeFile, 4) : [];
-      const result = await runSukgoAnalysis({
+      const externalUrls = this.settings.sukgoExternalEvidenceEnabled
+        ? extractUrls(options.externalUrls || topic)
+        : [];
+      const externalSources = externalUrls.length > 0
+        ? await collectExternalEvidence({
+            urls: externalUrls,
+            mode: this.settings.sukgoExternalEvidenceMode,
+            maxChars: this.settings.sukgoExternalEvidenceMaxChars,
+            onProgress: (message) => console.log(`[Codexian Sukgo] ${message}`),
+          })
+        : [];
+      const request = {
         app: this.app,
         agent: this.agent,
+        settings: this.settings,
         vaultPath: this.getVaultPath(),
         outputFolder: this.settings.sukgoFolder,
         tool,
+        providerId: this.settings.sukgoDebateProvider,
         topic,
         activeFile,
         activeNoteContent: context?.content || '',
         selectedText: context?.selection,
         pinnedNotes: context?.pinnedNotes || [],
         relatedNotes,
-        onProgress: (message) => console.log(`[Codexian Sukgo] ${message}`),
-      });
+        externalSources,
+        onProgress: (message: string) => console.log(`[Codexian Sukgo] ${message}`),
+      };
+      const result = executionMode === 'parallel'
+        ? await runSukgoDebate({ ...request, profile })
+        : await runSukgoAnalysis(request);
 
       const savedFile = this.app.vault.getAbstractFileByPath(result.path);
       if (savedFile && 'extension' in savedFile) {

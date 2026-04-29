@@ -319,8 +319,13 @@
   gap: 6px;
 }
 
+.oc-sukgo-secondary-controls {
+  align-items: stretch;
+}
+
 .oc-sukgo-select,
-.oc-sukgo-topic {
+.oc-sukgo-topic,
+.oc-sukgo-external {
   min-width: 0;
   border: 1px solid var(--background-modifier-border);
   background: var(--background-primary);
@@ -333,11 +338,20 @@
   height: 24px;
 }
 
-.oc-sukgo-topic {
+.oc-sukgo-topic,
+.oc-sukgo-external {
   width: 100%;
-  height: 26px;
   padding: 3px 7px;
   border-radius: 6px;
+}
+
+.oc-sukgo-topic {
+  height: 26px;
+}
+
+.oc-sukgo-external {
+  min-height: 42px;
+  resize: vertical;
 }
 
 .oc-sukgo-hint {

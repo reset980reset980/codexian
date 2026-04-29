@@ -1,5 +1,8 @@
 export type ReasoningEffort = 'low' | 'medium' | 'high' | 'xhigh';
 export type PermissionMode = 'review' | 'auto' | 'yolo';
+export type SukgoExecutionMode = 'single' | 'parallel' | 'auto';
+export type SukgoProviderId = 'codex' | 'claude' | 'zai' | 'gemini' | 'openrouter' | 'ollama';
+export type SukgoExternalEvidenceMode = 'summary' | 'excerpt' | 'link-only';
 export type ImageMode =
   | 'infographic'
   | 'poster'
@@ -50,6 +53,22 @@ export interface CodexianSettings {
   environmentVariables: string;
   mediaFolder: string;
   sukgoFolder: string;
+  sukgoExecutionMode: SukgoExecutionMode;
+  sukgoDebateProfile: string;
+  sukgoDebateProvider: SukgoProviderId;
+  sukgoExternalEvidenceEnabled: boolean;
+  sukgoExternalEvidenceMode: SukgoExternalEvidenceMode;
+  sukgoExternalEvidenceMaxChars: number;
+  sukgoProviderModels: Partial<Record<SukgoProviderId, string>>;
+  sukgoProviderConfig: {
+    claudeCliPath: string;
+    zAiApiKeyEnv: string;
+    zAiBaseUrl: string;
+    geminiApiKeyEnv: string;
+    openRouterApiKeyEnv: string;
+    openRouterBaseUrl: string;
+    ollamaBaseUrl: string;
+  };
   omx: {
     enabled: boolean;
     lastDoctorStatus: 'unknown' | 'pass' | 'warn' | 'fail';
@@ -75,6 +94,31 @@ export interface AgentQuery {
   activeNoteContent?: string;
   selectedText?: string;
   pinnedNotes?: Array<{ path: string; content: string }>;
+  model?: string;
+  reasoningEffort?: ReasoningEffort;
+}
+
+export type EvidenceSourceType = 'obsidian-note' | 'web-url' | 'youtube' | 'pdf' | 'paper';
+
+export interface EvidenceSource {
+  id: string;
+  type: EvidenceSourceType;
+  title: string;
+  url?: string;
+  path?: string;
+  content: string;
+  summary?: string;
+  capturedAt: number;
+  error?: string;
+}
+
+export interface EvidenceBundle {
+  topic: string;
+  activeNote?: EvidenceSource;
+  selectedText?: string;
+  pinnedNotes: EvidenceSource[];
+  relatedNotes: EvidenceSource[];
+  externalSources: EvidenceSource[];
 }
 
 export type AgentEvent =
@@ -102,6 +146,29 @@ export const DEFAULT_SETTINGS: CodexianSettings = {
   environmentVariables: '',
   mediaFolder: 'attachments/codexian',
   sukgoFolder: 'Sukgo',
+  sukgoExecutionMode: 'single',
+  sukgoDebateProfile: 'quick-3',
+  sukgoDebateProvider: 'codex',
+  sukgoExternalEvidenceEnabled: true,
+  sukgoExternalEvidenceMode: 'summary',
+  sukgoExternalEvidenceMaxChars: 6000,
+  sukgoProviderModels: {
+    codex: '',
+    claude: '',
+    zai: 'glm-5.1',
+    gemini: 'gemini-2.5-pro',
+    openrouter: '',
+    ollama: 'llama3.1',
+  },
+  sukgoProviderConfig: {
+    claudeCliPath: '',
+    zAiApiKeyEnv: 'ZAI_API_KEY',
+    zAiBaseUrl: 'https://api.z.ai/api/paas/v4/chat/completions',
+    geminiApiKeyEnv: 'GEMINI_API_KEY',
+    openRouterApiKeyEnv: 'OPENROUTER_API_KEY',
+    openRouterBaseUrl: 'https://openrouter.ai/api/v1/chat/completions',
+    ollamaBaseUrl: 'http://localhost:11434',
+  },
   omx: {
     enabled: false,
     lastDoctorStatus: 'unknown',
