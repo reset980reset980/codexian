@@ -75,6 +75,8 @@ Python `sukgo` CLI를 직접 실행하지 않습니다. 대신 Codexian의 Codex
 외부 자료:
 
 - 일반 웹/블로그 URL, PDF URL, arXiv/논문 페이지, YouTube 링크를 근거로 수집합니다.
+- YouTube 짧은 링크는 표준 watch URL로 정규화하고, 자막이 없으면 제목/설명 메타데이터를 근거 한계와 함께 사용합니다.
+- Obsidian/Electron fetch가 외부 사이트에서 실패할 때는 Node HTTP(S) fallback으로 한 번 더 수집을 시도합니다.
 - 기본값은 요약과 출처 링크 중심이며, 설정에서 원문 일부 포함 또는 링크만 포함으로 바꿀 수 있습니다.
 - URL 수집 실패는 전체 숙고 실행 실패로 이어지지 않고 결과 노트에 오류로 남습니다.
 

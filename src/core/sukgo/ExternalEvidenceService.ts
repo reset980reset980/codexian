@@ -1,3 +1,6 @@
+import * as http from 'http';
+import * as https from 'https';
+
 import type { EvidenceSource, EvidenceSourceType, SukgoExternalEvidenceMode } from '../types';
 
 export interface CollectExternalEvidenceOptions {
@@ -71,10 +74,8 @@ async function collectWeb(
 }
 
 async function collectPdf(url: string, options: CollectExternalEvidenceOptions): Promise<EvidenceSource> {
-  const response = await fetchWithTimeout(url, 'application/pdf,*/*;q=0.5');
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const arrayBuffer = await response.arrayBuffer();
-  const raw = Buffer.from(arrayBuffer).toString('latin1');
+  const buffer = await fetchBuffer(url, 'application/pdf,*/*;q=0.5');
+  const raw = buffer.toString('latin1');
   const text = normalizeText(
     raw
       .replace(/\\[nrtbf()\\]/g, ' ')
@@ -114,31 +115,56 @@ async function collectPaper(url: string, options: CollectExternalEvidenceOptions
 
 async function collectYoutube(url: string, options: CollectExternalEvidenceOptions): Promise<EvidenceSource> {
   const html = await fetchText(url, 'text/html,*/*;q=0.5');
-  const title = extractTitle(html) || 'YouTube';
+  const title = cleanYoutubeTitle(extractTitle(html)) || extractMetaTitle(html) || 'YouTube';
   const transcriptUrl = extractYoutubeTranscriptUrl(html);
   let transcript = '';
+  let transcriptError = '';
   if (transcriptUrl) {
-    const transcriptXml = await fetchText(transcriptUrl, 'text/xml,*/*;q=0.5');
-    transcript = normalizeText(transcriptXml.replace(/<text[^>]*>/g, ' ').replace(/<\/text>/g, ' '));
+    try {
+      const transcriptXml = await fetchText(transcriptUrl, 'text/xml,*/*;q=0.5');
+      transcript = normalizeText(transcriptXml.replace(/<text[^>]*>/g, ' ').replace(/<\/text>/g, ' '));
+    } catch (error) {
+      transcriptError = error instanceof Error ? error.message : String(error);
+    }
   }
   const description = extractMetaDescription(html);
   const summary = transcript ? summarize(transcript) : description || 'YouTube transcript를 찾지 못했습니다.';
+  const evidenceLimit = transcriptError
+    ? `YouTube transcript를 가져오지 못했습니다: ${transcriptError}`
+    : '';
+  const summaryWithLimit = evidenceLimit && !transcript
+    ? `${summary}\n[제한] ${evidenceLimit}`
+    : summary;
   return {
     id: stableId(url),
     type: 'youtube',
     title,
     url,
     content: options.mode === 'excerpt' ? transcript.slice(0, options.maxChars) : '',
-    summary,
+    summary: summaryWithLimit,
     capturedAt: Date.now(),
-    error: transcript ? undefined : 'transcript unavailable',
   };
 }
 
 async function fetchText(url: string, accept: string): Promise<string> {
-  const response = await fetchWithTimeout(url, accept);
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.text();
+  try {
+    const response = await fetchWithTimeout(url, accept);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.text();
+  } catch (error) {
+    return fetchTextWithNode(url, accept, error);
+  }
+}
+
+async function fetchBuffer(url: string, accept: string): Promise<Buffer> {
+  try {
+    const response = await fetchWithTimeout(url, accept);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (error) {
+    return fetchBufferWithNode(url, accept, error);
+  }
 }
 
 async function fetchWithTimeout(url: string, accept: string): Promise<Response> {
@@ -150,6 +176,7 @@ async function fetchWithTimeout(url: string, accept: string): Promise<Response> 
       signal: controller.signal,
       headers: {
         Accept: accept,
+        'User-Agent': userAgent(),
       },
     });
   } finally {
@@ -157,8 +184,89 @@ async function fetchWithTimeout(url: string, accept: string): Promise<Response> 
   }
 }
 
+function fetchTextWithNode(url: string, accept: string, originalError: unknown, redirectCount = 0): Promise<string> {
+  return fetchBufferWithNode(url, accept, originalError, redirectCount).then((buffer) => buffer.toString('utf8'));
+}
+
+function fetchBufferWithNode(url: string, accept: string, originalError: unknown, redirectCount = 0): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const parsed = new URL(url);
+    const client = parsed.protocol === 'http:' ? http : https;
+    const request = client.request(parsed, {
+      method: 'GET',
+      timeout: 15000,
+      headers: {
+        Accept: accept,
+        'User-Agent': userAgent(),
+      },
+    }, (response) => {
+      const statusCode = response.statusCode || 0;
+      const location = response.headers.location;
+
+      if (statusCode >= 300 && statusCode < 400 && location) {
+        response.resume();
+        if (redirectCount >= 5) {
+          reject(new Error(`redirect limit exceeded after fetch failed: ${errorMessage(originalError)}`));
+          return;
+        }
+        const nextUrl = new URL(location, parsed).toString();
+        fetchBufferWithNode(nextUrl, accept, originalError, redirectCount + 1).then(resolve, reject);
+        return;
+      }
+
+      if (statusCode < 200 || statusCode >= 300) {
+        response.resume();
+        reject(new Error(`HTTP ${statusCode} after fetch failed: ${errorMessage(originalError)}`));
+        return;
+      }
+
+      const chunks: Buffer[] = [];
+      response.on('data', (chunk: Buffer | string) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      });
+      response.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+
+    request.on('timeout', () => {
+      request.destroy(new Error(`timeout after fetch failed: ${errorMessage(originalError)}`));
+    });
+    request.on('error', (error) => {
+      reject(new Error(`${error.message} after fetch failed: ${errorMessage(originalError)}`));
+    });
+    request.end();
+  });
+}
+
+function userAgent(): string {
+  return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Codexian/0.2 Safari/537.36';
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function normalizeUrls(urls: string[]): string[] {
-  return Array.from(new Set(urls.map((url) => url.trim()).filter(Boolean)));
+  return Array.from(new Set(urls.map((url) => normalizeExternalUrl(url.trim())).filter(Boolean)));
+}
+
+function normalizeExternalUrl(url: string): string {
+  if (!url) return '';
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'youtu.be') {
+      const videoId = parsed.pathname.replace(/^\/+/, '').split('/')[0];
+      if (videoId) {
+        const normalized = new URL('https://www.youtube.com/watch');
+        normalized.searchParams.set('v', videoId);
+        const timestamp = parsed.searchParams.get('t') || parsed.searchParams.get('start');
+        if (timestamp) normalized.searchParams.set('t', timestamp);
+        return normalized.toString();
+      }
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
 }
 
 function classifyUrl(url: string): EvidenceSourceType {
@@ -193,9 +301,40 @@ function extractTitle(html: string): string {
 }
 
 function extractMetaDescription(html: string): string {
-  const match = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["'][^>]*>/i)
-    || html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["'][^>]*>/i);
-  return match ? normalizeText(stripHtml(match[1])) : '';
+  return extractMetaContent(html, ['description', 'og:description', 'twitter:description']);
+}
+
+function extractMetaTitle(html: string): string {
+  return extractMetaContent(html, ['og:title', 'twitter:title']);
+}
+
+function extractMetaContent(html: string, names: string[]): string {
+  const tags = html.match(/<meta\b[^>]*>/gi) || [];
+  for (const tag of tags) {
+    const name = extractAttribute(tag, 'name') || extractAttribute(tag, 'property');
+    if (!name || !names.includes(name.toLowerCase())) continue;
+    const content = extractAttribute(tag, 'content');
+    if (content) return normalizeText(stripHtml(decodeHtmlAttribute(content)));
+  }
+  return '';
+}
+
+function extractAttribute(tag: string, attribute: string): string {
+  const match = tag.match(new RegExp(`\\b${attribute}\\s*=\\s*(['"])([\\s\\S]*?)\\1`, 'i'));
+  return match ? match[2] : '';
+}
+
+function decodeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function cleanYoutubeTitle(value: string): string {
+  return normalizeText(value.replace(/\s*-\s*YouTube\s*$/i, ''));
 }
 
 function summarize(value: string): string {

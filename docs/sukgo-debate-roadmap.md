@@ -182,6 +182,8 @@ export interface EvidenceBundle {
 4. YouTube transcript 추출
 
 처음 구현할 때는 `ExternalEvidenceService`를 만들고, 각 source type별 파서를 느슨하게 분리한다. 파서가 실패하면 URL과 실패 이유를 결과 노트에 남긴다.
+YouTube는 짧은 링크를 표준 watch URL로 정규화하고, transcript가 없거나 막히면 제목/설명 메타데이터를 남겨 "수집 실패"와 "근거 한계"를 구분한다.
+Obsidian/Electron의 fetch가 외부 사이트에서 막히는 경우에는 Node HTTP(S) fallback을 사용해 웹, 논문 메타데이터, PDF, YouTube HTML 수집을 재시도한다.
 
 ## UI 계획
 
