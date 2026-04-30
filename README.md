@@ -82,7 +82,11 @@ Provider:
 
 - 기본 provider는 Codex입니다.
 - 설정에서 Claude CLI, z.ai, Gemini, OpenRouter, Ollama를 선택할 수 있습니다.
-- API 기반 provider는 환경 변수 영역에 키를 넣고, 설정에서 키 이름과 모델/엔드포인트를 지정합니다.
+- Codex는 `codex login`으로 인증된 기존 Codex CLI 세션을 그대로 사용합니다. OpenAI API 키를 따로 넣지 않아도 됩니다.
+- Claude CLI는 로컬 `claude` CLI의 기존 인증 상태를 사용합니다.
+- Ollama는 로컬 Ollama 서버 URL을 사용하며 기본적으로 API 키가 필요하지 않습니다.
+- z.ai, Gemini, OpenRouter는 API 키 방식입니다. 설정의 `API 키 환경 변수` 칸에는 키 값이 아니라 환경 변수 이름을 넣습니다.
+- 실제 API 키 값은 Codexian 설정의 `환경 변수` 영역에 `ZAI_API_KEY=...`, `GEMINI_API_KEY=...`, `OPENROUTER_API_KEY=...` 형식으로 넣습니다.
 - z.ai 기본값은 OpenClaw의 built-in provider와 같은 `glm-4.7` 및 `https://api.z.ai/api/coding/paas/v4`를 사용합니다.
 
 기본 출력 폴더:
@@ -181,9 +185,9 @@ Obsidian 설정 -> 커뮤니티 플러그인 -> Codexian에서 설정합니다.
 - **숙고 출력 폴더**: 숙고 사고 결과 노트 저장 위치입니다.
 - **기본 숙고 실행 방식**: 단일 실행, 병렬 토론, 자동 선택 중에서 고릅니다.
 - **기본 병렬 토론 프로필**: 빠른 3인, 깊은 5인, 논문/자료 검토 중에서 고릅니다.
-- **숙고 provider**: Codex, Claude CLI, z.ai, Gemini, OpenRouter, Ollama 중에서 선택합니다.
+- **숙고 provider**: Codex, Claude CLI, z.ai, Gemini, OpenRouter, Ollama 중에서 선택합니다. Codex는 CLI 로그인 재사용, Claude는 로컬 CLI 인증 재사용, z.ai/Gemini/OpenRouter는 API 키 환경 변수, Ollama는 로컬 서버를 사용합니다.
 - **외부 URL 근거 수집**: URL 수집 사용 여부, 포함 방식, 최대 글자 수를 설정합니다.
-- **provider별 모델/엔드포인트**: API 키 환경 변수 이름, 모델 ID, 로컬/원격 엔드포인트를 설정합니다.
+- **provider별 모델/엔드포인트**: API 키 환경 변수 이름, 모델 ID, 로컬/원격 엔드포인트를 설정합니다. `API 키 환경 변수`에는 `ZAI_API_KEY` 같은 이름만 넣고, 실제 키 값은 `환경 변수` 영역에 `ZAI_API_KEY=실제키` 형식으로 넣습니다.
 
 설치/업데이트 보조 기능:
 

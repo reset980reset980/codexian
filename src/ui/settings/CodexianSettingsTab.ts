@@ -181,7 +181,7 @@ export class CodexianSettingsTab extends PluginSettingTab {
 
     new Setting(sukgoCard)
       .setName('숙고 provider')
-      .setDesc('Codex 외 provider는 각 API 키 또는 로컬 런타임 설정이 필요합니다.')
+      .setDesc('Codex는 기존 Codex CLI 로그인을 그대로 씁니다. z.ai, Gemini, OpenRouter는 API 키 환경 변수가 필요하고, Claude는 로컬 Claude CLI 인증, Ollama는 로컬 서버를 사용합니다.')
       .addDropdown((dropdown) => dropdown
         .addOption('codex', 'Codex')
         .addOption('claude', 'Claude CLI')
@@ -245,7 +245,7 @@ export class CodexianSettingsTab extends PluginSettingTab {
 
     new Setting(sukgoCard)
       .setName('API 키 환경 변수')
-      .setDesc('순서대로 z.ai, Gemini, OpenRouter 환경 변수 이름입니다. 값 자체는 환경 변수 영역에 넣습니다.')
+      .setDesc('순서대로 z.ai, Gemini, OpenRouter의 API 키 "환경 변수 이름"입니다. 실제 키 값은 위 환경 변수 영역에 ZAI_API_KEY=..., GEMINI_API_KEY=..., OPENROUTER_API_KEY=... 형식으로 넣습니다.')
       .addText((text) => text
         .setValue(this.plugin.settings.sukgoProviderConfig.zAiApiKeyEnv)
         .onChange(async (value) => {
