@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1100" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="core" cx="44%" cy="46%" r="42%">
+      <stop offset="0" stop-color="#8ef7ff" stop-opacity=".42"/>
+      <stop offset=".24" stop-color="#6d5dfc" stop-opacity=".26"/>
+      <stop offset=".55" stop-color="#7c2dff" stop-opacity=".15"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="amber" cx="72%" cy="34%" r="28%">
+      <stop offset="0" stop-color="#ffe08a" stop-opacity=".34"/>
+      <stop offset=".45" stop-color="#fb7185" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="violet" cx="23%" cy="72%" r="34%">
+      <stop offset="0" stop-color="#c084fc" stop-opacity=".28"/>
+      <stop offset=".5" stop-color="#38bdf8" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <pattern id="stars" width="180" height="180" patternUnits="userSpaceOnUse">
+      <circle cx="18" cy="27" r="1.2" fill="#ffffff" opacity=".62"/>
+      <circle cx="75" cy="41" r=".8" fill="#cffafe" opacity=".56"/>
+      <circle cx="129" cy="19" r="1.5" fill="#fde68a" opacity=".48"/>
+      <circle cx="153" cy="104" r=".9" fill="#ffffff" opacity=".46"/>
+      <circle cx="43" cy="139" r="1.1" fill="#bae6fd" opacity=".52"/>
+      <circle cx="103" cy="162" r=".7" fill="#ffffff" opacity=".4"/>
+    </pattern>
+  </defs>
+  <rect width="1800" height="1100" fill="#020617"/>
+  <rect width="1800" height="1100" fill="url(#stars)" opacity=".92"/>
+  <g filter="url(#soft)">
+    <path d="M-80 760C220 560 390 560 680 470c370-115 670-410 1220-250v280c-420-42-645 112-965 225-360 128-630 84-1015 265Z" fill="#312e81" opacity=".5"/>
+    <path d="M-90 835c320-255 610-244 1010-326 250-52 478-189 980-135v250c-395-28-646 72-1010 190-330 107-610 88-980 196Z" fill="#0e7490" opacity=".23"/>
+    <path d="M160 150c280 124 430 90 646 70 312-28 462 56 732 215-345-52-505 22-790 56-238 28-425-12-588-341Z" fill="#a855f7" opacity=".22"/>
+  </g>
+  <rect width="1800" height="1100" fill="url(#core)"/>
+  <rect width="1800" height="1100" fill="url(#amber)"/>
+  <rect width="1800" height="1100" fill="url(#violet)"/>
+  <g opacity=".75">
+    <circle cx="520" cy="510" r="2.5" fill="#fff"/>
+    <circle cx="720" cy="430" r="3.1" fill="#fef3c7"/>
+    <circle cx="1090" cy="310" r="2.6" fill="#cffafe"/>
+    <circle cx="1320" cy="665" r="3.4" fill="#fff"/>
+    <circle cx="330" cy="795" r="2.2" fill="#bae6fd"/>
+    <circle cx="1515" cy="215" r="2.8" fill="#fff7ed"/>
+  </g>
+</svg>

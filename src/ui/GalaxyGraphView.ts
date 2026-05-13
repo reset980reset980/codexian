@@ -433,10 +433,11 @@ export class GalaxyGraphView extends ItemView {
   }
 
   private drawBackground(ctx: CanvasRenderingContext2D): void {
+    ctx.clearRect(0, 0, this.width, this.height);
     const gradient = ctx.createRadialGradient(this.width * 0.5, this.height * 0.5, 0, this.width * 0.5, this.height * 0.5, Math.max(this.width, this.height));
-    gradient.addColorStop(0, '#13203d');
-    gradient.addColorStop(0.42, '#0b1024');
-    gradient.addColorStop(1, '#030610');
+    gradient.addColorStop(0, 'rgba(19, 32, 61, 0.26)');
+    gradient.addColorStop(0.42, 'rgba(11, 16, 36, 0.34)');
+    gradient.addColorStop(1, 'rgba(3, 6, 16, 0.68)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.width, this.height);
     ctx.save();
