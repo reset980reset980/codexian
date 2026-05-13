@@ -434,7 +434,7 @@ export class GalaxyGraphView extends ItemView {
 
   private drawBackground(ctx: CanvasRenderingContext2D): void {
     ctx.clearRect(0, 0, this.width, this.height);
-    ctx.fillStyle = 'rgba(2, 6, 23, 0.18)';
+    ctx.fillStyle = 'rgba(2, 6, 23, 0.08)';
     ctx.fillRect(0, 0, this.width, this.height);
     ctx.save();
     ctx.globalAlpha = 0.34;
