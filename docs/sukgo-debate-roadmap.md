@@ -325,6 +325,14 @@ tags:
 - 인증/키/경로 검증 추가
 - 실패 격리 및 비용 안내 추가
 
+### 6단계: Codexian Galaxy 3D 지식 그래프
+
+- 기본 Obsidian 그래프뷰를 스킨하지 않고 별도 `Codexian Galaxy 3D` 뷰로 제공한다.
+- Markdown 파일, resolved links, tags, folder root, active note 상태를 그래프 데이터로 변환한다.
+- Canvas 기반 3D 투영으로 노트 군집, 링크, 태그 공유 관계, 선택 노트 패널을 렌더링한다.
+- 검색, 주제 필터, 노드 수 제한, 재초점, 자동회전, 수집 빛 ON/OFF, 2D/3D 전환을 제공한다.
+- 정적 배경 이미지는 필수로 두지 않고, 우주 배경과 별 필드는 Canvas에서 절차적으로 생성한다.
+
 ## 검증 기준
 
 - 기존 단일 숙고 실행이 그대로 동작한다.
@@ -332,6 +340,7 @@ tags:
 - 병렬 지원 도구에서 역할별 결과가 일부 실패해도 최종 노트가 저장된다.
 - 결과 노트에 provider, model, role, source 정보가 남는다.
 - 외부 URL 수집 실패가 전체 숙고 실행 실패로 이어지지 않는다.
+- Galaxy 3D 뷰가 명령 팔레트와 리본 아이콘에서 열리고, 그래프 노드 선택과 노트 열기가 동작한다.
 - `npm run typecheck`, `npm run build`, `git diff --check`가 통과한다.
 
 ## 주의사항

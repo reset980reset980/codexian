@@ -13,6 +13,7 @@ import { getSukgoTool, SUKGO_TOOLS } from './core/sukgo/SukgoTools';
 import type { CodexianSettings, MemoryMapResult, SukgoExecutionMode } from './core/types';
 import { DEFAULT_SETTINGS } from './core/types';
 import { CodexianView, VIEW_TYPE_CODEXIAN } from './ui/CodexianView';
+import { GalaxyGraphView, VIEW_TYPE_CODEXIAN_GALAXY } from './ui/GalaxyGraphView';
 import { ImageGenerationModal } from './ui/modals/ImageGenerationModal';
 import { VisualGenerationProgressModal } from './ui/modals/VisualGenerationProgressModal';
 import { VisualPromptPreviewModal } from './ui/modals/VisualPromptPreviewModal';
@@ -45,15 +46,25 @@ export default class CodexianPlugin extends Plugin {
     this.memoryMap = new MemoryMapService(this.app);
 
     this.registerView(VIEW_TYPE_CODEXIAN, (leaf) => new CodexianView(leaf, this));
+    this.registerView(VIEW_TYPE_CODEXIAN_GALAXY, (leaf) => new GalaxyGraphView(leaf, this));
 
     this.addRibbonIcon('sparkles', 'Codexian 열기', () => {
       void this.activateView();
+    });
+    this.addRibbonIcon('orbit', 'Codexian Galaxy 3D 열기', () => {
+      void this.activateGalaxyView();
     });
 
     this.addCommand({
       id: 'open-codexian',
       name: 'Codexian 열기',
       callback: () => void this.activateView(),
+    });
+
+    this.addCommand({
+      id: 'open-codexian-galaxy',
+      name: 'Codexian Galaxy 3D 열기',
+      callback: () => void this.activateGalaxyView(),
     });
 
     this.addCommand({
@@ -114,6 +125,7 @@ export default class CodexianPlugin extends Plugin {
   onunload(): void {
     this.agent?.cancel();
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_CODEXIAN);
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_CODEXIAN_GALAXY);
   }
 
   async loadSettings(): Promise<void> {
@@ -174,6 +186,18 @@ export default class CodexianPlugin extends Plugin {
     if (leaf) {
       workspace.revealLeaf(leaf);
     }
+  }
+
+  async activateGalaxyView(): Promise<void> {
+    const { workspace } = this.app;
+    let leaf = workspace.getLeavesOfType(VIEW_TYPE_CODEXIAN_GALAXY)[0];
+    if (!leaf) {
+      const centerLeaf = workspace.getLeaf(false);
+      if (!centerLeaf) return;
+      leaf = centerLeaf;
+      await leaf.setViewState({ type: VIEW_TYPE_CODEXIAN_GALAXY, active: true });
+    }
+    workspace.revealLeaf(leaf);
   }
 
   getVaultPath(): string {
