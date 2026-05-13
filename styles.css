@@ -3913,7 +3913,7 @@ code .oc-file-link:hover {
   min-height: 420px;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(2, 6, 23, 0.04), rgba(2, 6, 23, 0.22)),
+    radial-gradient(circle at 50% 52%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.22) 52%, rgba(0, 0, 0, 0.52) 100%),
     url("assets/galaxy-background.jpg") center / cover no-repeat,
     #020617;
   color: #e5f8ff;
