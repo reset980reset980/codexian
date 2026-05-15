@@ -435,7 +435,7 @@ export class GalaxyGraphView extends ItemView {
   private drawBackground(ctx: CanvasRenderingContext2D): void {
     ctx.clearRect(0, 0, this.width, this.height);
     ctx.save();
-    ctx.globalAlpha = 0.46;
+    ctx.globalAlpha = 0.24;
     for (let i = 0; i < 120; i += 1) {
       const x = ((i * 137.5) % this.width);
       const y = ((i * 71.3) % this.height);
@@ -483,7 +483,7 @@ export class GalaxyGraphView extends ItemView {
     for (const edge of this.graph.edges) {
       if (!edge.source.visible || !edge.target.visible) continue;
       if (edge.type === 'tag' && !this.includeTagEdges) continue;
-      const alpha = edge.type === 'tag' ? 0.08 : 0.18;
+      const alpha = edge.type === 'tag' ? 0.05 : 0.12;
       ctx.globalAlpha = alpha * Math.min(1, (edge.source.screenSize + edge.target.screenSize) / 12);
       ctx.strokeStyle = edge.type === 'tag' ? '#b7ffde' : '#f7d26b';
       ctx.lineWidth = edge.weight;
@@ -498,15 +498,15 @@ export class GalaxyGraphView extends ItemView {
   private drawNode(ctx: CanvasRenderingContext2D, node: GalaxyNode): void {
     const glow = node.selected || node.active || node === this.hoveredNode;
     ctx.save();
-    ctx.globalAlpha = Math.min(1, 0.34 + node.screenSize / 16);
+    ctx.globalAlpha = Math.min(1, 0.42 + node.screenSize / 18);
     ctx.shadowColor = node.color;
-    ctx.shadowBlur = glow ? 24 : 8;
+    ctx.shadowBlur = glow ? 12 : 2;
     ctx.fillStyle = node.active ? '#ffffff' : node.color;
     ctx.beginPath();
     ctx.arc(node.screenX, node.screenY, node.screenSize * (glow ? 1.35 : 1), 0, Math.PI * 2);
     ctx.fill();
     if (node.links + node.backlinks > 16 || glow) {
-      ctx.globalAlpha = glow ? 0.45 : 0.18;
+      ctx.globalAlpha = glow ? 0.36 : 0.1;
       ctx.strokeStyle = node.color;
       ctx.lineWidth = 1.2;
       ctx.beginPath();
@@ -527,7 +527,7 @@ export class GalaxyGraphView extends ItemView {
       ctx.globalAlpha = 0.72;
       ctx.fillStyle = '#f8fafc';
       ctx.shadowColor = '#020617';
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 2;
       ctx.fillText(`${cluster.label} ${cluster.count}`, sample.screenX, sample.screenY - 34);
     }
     ctx.restore();
