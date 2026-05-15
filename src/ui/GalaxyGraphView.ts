@@ -92,6 +92,7 @@ export class GalaxyGraphView extends ItemView {
   private query = '';
   private topic = 'all';
   private nodeLimit = 1500;
+  private backdropUrl = '';
 
   constructor(leaf: WorkspaceLeaf, plugin: CodexianPlugin) {
     super(leaf);
@@ -114,6 +115,7 @@ export class GalaxyGraphView extends ItemView {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
     container.addClass('oc-galaxy-view');
+    void this.loadBackdrop(container);
 
     const canvas = container.createEl('canvas', { cls: 'oc-galaxy-canvas' });
     this.canvas = canvas;
@@ -144,6 +146,24 @@ export class GalaxyGraphView extends ItemView {
 
   async onClose(): Promise<void> {
     if (this.animationFrame) window.cancelAnimationFrame(this.animationFrame);
+    if (this.backdropUrl) URL.revokeObjectURL(this.backdropUrl);
+  }
+
+  private async loadBackdrop(container: HTMLElement): Promise<void> {
+    try {
+      const manifest = this.plugin.manifest as { dir?: string };
+      const baseDir = manifest.dir || '.obsidian/plugins/codexian';
+      const assetPath = `${baseDir}/assets/galaxy-background.jpg`;
+      const buffer = await this.app.vault.adapter.readBinary(assetPath);
+      if (this.backdropUrl) URL.revokeObjectURL(this.backdropUrl);
+      this.backdropUrl = URL.createObjectURL(new Blob([buffer], { type: 'image/jpeg' }));
+      container.style.backgroundImage = `url("${this.backdropUrl}")`;
+      container.style.backgroundPosition = 'center';
+      container.style.backgroundSize = 'cover';
+      container.style.backgroundRepeat = 'no-repeat';
+    } catch (error) {
+      console.warn('[Codexian Galaxy] Failed to load galaxy backdrop asset:', error);
+    }
   }
 
   private buildControls(parent: HTMLElement): void {
