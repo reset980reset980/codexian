@@ -4,10 +4,7 @@
   height: 100%;
   min-height: 420px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 52%, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.22) 52%, rgba(0, 0, 0, 0.52) 100%),
-    url("assets/galaxy-background.jpg") center / cover no-repeat,
-    #020617;
+  background: #020617 url("assets/galaxy-background.jpg") center / cover no-repeat;
   color: #e5f8ff;
 }
 
